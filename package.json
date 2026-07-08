@@ -1,0 +1,33 @@
+{
+  "name": "fs14-studyofforest-be",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/app.js",
+    "start": "node src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SOF-Team2/FS14-StudyOfForest-BE.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/SOF-Team2/FS14-StudyOfForest-BE/issues"
+  },
+  "homepage": "https://github.com/SOF-Team2/FS14-StudyOfForest-BE#readme",
+  "dependencies": {
+    "@prisma/client": "^7.8.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "prisma": "^7.8.0"
+  }
+}
