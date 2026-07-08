@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config"
-import studyRoutes from "./routes/studyRoutes.js";
+import studyRoutes from "./src/routes/studyRoutes.js";
 
 const app = express();
 
