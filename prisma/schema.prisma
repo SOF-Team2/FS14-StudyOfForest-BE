@@ -53,7 +53,7 @@ model Habit {
   name         String
   habitStatus  HabitStatus  @default(ACTIVE)
   startDate    DateTime
-  endDate      DateTime
+  endDate      DateTime?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   habitRecords HabitRecord[]
