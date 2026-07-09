@@ -5,10 +5,7 @@ import habitRoutes from './habitRoutes.js';
 
 const router = express.Router();
 router.use("/:studyId/habit", habitRoutes);
-import express from "express";
-router.use("/:studyId/habit", habitRoutes);
 
-export default router;
 router.get("/", studyController.getStudies);
 router.post("/", studyController.createStudy);
 router.get("/:studyId", studyController.getStudy);
