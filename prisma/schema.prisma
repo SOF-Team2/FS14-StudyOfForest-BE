@@ -1,13 +1,75 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Study {
+  id              String       @id @default(uuid())
+  nickname        String       @db.VarChar(30)
+  name            String       @db.VarChar(50)
+  description     String       @db.VarChar(200)
+
+  backgroundType  String       @db.VarChar(20)
+  backgroundValue String
+
+  passwordHash    String
+  point           Int          @default(0)
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+
+  habits          Habit[]
+  emojis          StudyEmoji[]
+
+  @@index([createdAt])
+  @@index([point])
+  @@index([deletedAt])
+  @@index([name])
+}
+
+model StudyEmoji {
+  id        String   @id @default(uuid())
+  studyId   String
+  study     Study    @relation(fields: [studyId], references: [id], onDelete: Cascade)
+
+  emoji     String   @db.VarChar(20)
+  count     Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studyId, emoji])
+  @@index([studyId])
+}
+
+model Habit {
+  id           String       @id @default(uuid())
+  studyId      String
+  study        Study        @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  name         String
+  habitStatus  HabitStatus  @default(ACTIVE)
+  startDate    DateTime
+  endDate      DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  habitRecords HabitRecord[]
+}
+
+model HabitRecord {
+  id           String    @id @default(uuid())
+  habitId      String
+  habit        Habit     @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  recordDate   DateTime
+  isChecked    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+enum HabitStatus {
+  ACTIVE
+  INACTIVE
 }
