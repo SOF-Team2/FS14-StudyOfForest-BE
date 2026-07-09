@@ -10,4 +10,5 @@ const prisma = new PrismaClient({ adapter });
 
 export const getHabits = async () => {
     return prisma.habit.findMany();
+    
 };
