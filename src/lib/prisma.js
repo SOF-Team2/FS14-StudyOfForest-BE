@@ -4,7 +4,9 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 const { PrismaClient } = pkg;
 const globalForPrisma = globalThis;
+
 const connectionString = process.env.DATABASE_URL;
+
 const prismaOptions = connectionString
   ? { adapter: new PrismaPg({ connectionString }) }
   : {};
