@@ -11,8 +11,12 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 // 스터디 데이터 조회
-export const getFocusStudyData = async (studyId) => {
-  const study = await focusRepository.findFocusStudyById(studyId)
+export const getFocusStudyData = async (studyId, password) => {
+
+  //비밀번호 검증
+  await verifyStudyPassword(studyId, password);
+
+  const study = await focusRepository.findFocusStudyById(studyId);
 
   if (!study) {
     const error = new Error('오늘의 집중 데이터를 찾을 수 없습니다.')
@@ -32,17 +36,11 @@ export const getFocusStudyData = async (studyId) => {
   }
 }
 
-//해야할 것 
-//Study 모델에 point 필드 확인/추가 후 migrate, 비밀번호 검증 함수, 
-//집중 조회 API(POST /study/:id/focus) 작성
-//백엔드 - DB 설계 + 비밀번호 검증 + 조회 API
-//focus.service/controller/router (조회까지)
-
 //비밀번호 검증 기능 구현 (함수로 분리)
 export async function verifyStudyPassword(studyId, password) {
 
-  //아이디와 패스워드를 받는다.
-  const study = await focusRepository.findFocusStudyById(studyId);
+  //아이디와 패스워드를 받는다. (기존 조회에서는 해시값을 받아오지 않기 때문에 따로 분리해서 작업함)
+  const study = await focusRepository.findStudyPasswordById(studyId);
 
   //스터디가 없을 경우 404
   if (!study) {
@@ -60,20 +58,4 @@ export async function verifyStudyPassword(studyId, password) {
   }
   //스터디가 있고, 패스워드가 동일하면 스터디를 던져준다.
   return study;
-}
-
-export async function updateFocusPoint(studyId, password, point) {
-  // 1) 비밀번호 검증 (같은 파일의 함수 재사용 — 틀리면 여기서 에러가 던져짐)
-  await verifyStudyPassword(studyId, password);
-
-  // 2) 넘어온 포인트 값이 올바른지 확인
-  if (typeof point !== 'number' || point < 0) {
-    const error = new Error('포인트 값이 올바르지 않습니다.');
-    error.status = 400;
-    throw error;
-  }
-
-  // 3) 기존 포인트에 더하기
-  const updated = await focusRepository.addFocusPoint(studyId, point);
-  return updated; // { id, point }의 형식으로 반환
 }
