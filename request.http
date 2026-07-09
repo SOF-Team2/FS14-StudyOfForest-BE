@@ -1,7 +1,7 @@
-GET http://localhost:3000/studies/eddc1d7a-8ac3-4e1c-be36-cb9d2c5dea9c/habits
+GET http://localhost:3000/study/eddc1d7a-8ac3-4e1c-be36-cb9d2c5dea9c/habit
 
 ###
-POST http://localhost:3000/studies/eddc1d7a-8ac3-4e1c-be36-cb9d2c5dea9c/habits
+POST http://localhost:3000/study/eddc1d7a-8ac3-4e1c-be36-cb9d2c5dea9c/habit
 Content-Type: application/json
 
 {
@@ -9,7 +9,7 @@ Content-Type: application/json
 }
 
 ###
-PATCH http://localhost:3000/habits/94c5ffb1-f566-443b-a61d-554008b33c05
+PATCH http://localhost:3000/habit/94c5ffb1-f566-443b-a61d-554008b33c05
 Content-Type: application/json
 
 {
@@ -17,4 +17,4 @@ Content-Type: application/json
 }
 
 ###
-DELETE http://localhost:3000/habits/94c5ffb1-f566-443b-a61d-554008b33c05
+DELETE http://localhost:3000/habit/94c5ffb1-f566-443b-a61d-554008b33c05
