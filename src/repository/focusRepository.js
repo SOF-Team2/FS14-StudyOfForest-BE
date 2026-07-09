@@ -1,9 +1,36 @@
-import { PrismaClient } from "@prisma/client";
+import dotenv from 'dotenv';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+dotenv.config();
 
-// 프론트에서 earnedPoint를 보내주어야 함!
-// 포인트 계산 함수 (더하기)
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
+
+export const findFocusStudyById = async (studyId) => {
+  return await prisma.study.findFirst({
+    where: {
+      id: studyId,
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      name: true,
+      point: true,
+      emojis: {
+        select: {
+          emoji: true,
+          count: true,
+        },
+        orderBy: {
+          count: 'desc',
+        },
+        take: 3,
+      },
+    },
+  });
+};
+
 export async function addFocusPoint(studyId, earnedPoint) {
   return await prisma.study.update({
     where: { id: studyId },

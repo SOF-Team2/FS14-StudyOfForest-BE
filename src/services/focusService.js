@@ -10,6 +10,28 @@ const { PrismaClient } = pkg;
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
+// 스터디 데이터 조회
+export const getFocusStudyData = async (studyId) => {
+  const study = await focusRepository.findFocusStudyById(studyId)
+
+  if (!study) {
+    const error = new Error('오늘의 집중 데이터를 찾을 수 없습니다.')
+    error.status = 404
+    error.code = 'FOCUS_STUDY_NOT_FOUND'
+    throw error
+  }
+
+  return {
+    studyId: study.id,
+    studyName: study.name,
+    currentPoint: study.point,
+    emojis: (study.emojis ?? []).map((emojiItem) => ({
+      emoji: emojiItem.emoji,
+      count: emojiItem.count,
+    })),
+  }
+}
+
 //해야할 것 
 //Study 모델에 point 필드 확인/추가 후 migrate, 비밀번호 검증 함수, 
 //집중 조회 API(POST /study/:id/focus) 작성
@@ -20,7 +42,7 @@ const prisma = new PrismaClient({ adapter });
 export async function verifyStudyPassword(studyId, password) {
 
   //아이디와 패스워드를 받는다.
-  const study = await focusRepository.find_focus_study_by_id(studyId);
+  const study = await focusRepository.findFocusStudyById(studyId);
 
   //스터디가 없을 경우 404
   if (!study) {

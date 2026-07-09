@@ -1,7 +1,9 @@
-import express from "express";
+import express from 'express'
 import * as focusController from '../controllers/focusController.js';
-const router = express.Router();
 
-router.patch('/studies/:id/focus/point', focusController.updateFocusPointController);
+const router = express.Router()
 
-export default router;
+router.post('/:id/focus', focusController.getFocusData)
+router.patch('/:id/focus/point', focusController.updateFocusPointController);
+
+export default router
