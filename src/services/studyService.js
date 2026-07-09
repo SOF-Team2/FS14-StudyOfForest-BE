@@ -1,4 +1,4 @@
-import studyRepository from "../repository/studyRepository.js";
+import * as studyRepository from "../repository/studyRepository.js";
 import { comparePassword, hashPassword } from "../utils/password.js";
 
 const DEFAULT_PAGE = 1;
@@ -100,7 +100,7 @@ const getListParams = (query = {}) => {
 };
 
 // 스터디 목록을 페이지네이션, 검색, 정렬 조건으로 조회한다.
-const listStudies = async (query = {}) => {
+export const listStudies = async (query = {}) => {
   const params = getListParams(query);
   const { items, totalCount } = await studyRepository.findAll(params);
   const totalPages = Math.ceil(totalCount / params.pageSize);
@@ -117,13 +117,13 @@ const listStudies = async (query = {}) => {
 };
 
 // 단일 스터디 상세 정보를 조회한다.
-const getStudy = async (studyId) => {
+export const getStudy = async (studyId) => {
   const study = await getStudyOrThrow(studyId);
   return sanitizeStudy(study);
 };
 
 // 필수값과 비밀번호 확인을 검증한 뒤 스터디를 생성한다.
-const createStudy = async (payload = {}) => {
+export const createStudy = async (payload = {}) => {
   const normalizedPayload = normalizeCreatePayload(payload);
 
   validateRequiredFields({
@@ -157,7 +157,7 @@ const createStudy = async (payload = {}) => {
 };
 
 // 비밀번호 검증 후 전달된 필드만 골라 스터디를 수정한다.
-const updateStudy = async (studyId, payload = {}) => {
+export const updateStudy = async (studyId, payload = {}) => {
   const study = await getStudyOrThrow(studyId);
   await verifyPassword(study, payload.password);
 
@@ -183,7 +183,7 @@ const updateStudy = async (studyId, payload = {}) => {
 };
 
 // 비밀번호 검증 후 스터디를 soft delete 처리한다.
-const deleteStudy = async (studyId, payload = {}) => {
+export const deleteStudy = async (studyId, payload = {}) => {
   const study = await getStudyOrThrow(studyId);
   await verifyPassword(study, payload.password);
 
@@ -191,7 +191,7 @@ const deleteStudy = async (studyId, payload = {}) => {
 };
 
 // 스터디 응원 이모지를 생성하거나 기존 이모지 count를 증가시킨다.
-const addEmoji = async (studyId, payload = {}) => {
+export const addEmoji = async (studyId, payload = {}) => {
   await getStudyOrThrow(studyId);
 
   const emoji = normalizeString(payload.emoji);

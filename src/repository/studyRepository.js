@@ -94,7 +94,7 @@ const createOrderBy = (sort) => {
 };
 
 // 스터디 목록과 전체 개수를 같은 조건으로 조회한다.
-const findAll = async ({ page, pageSize, keyword, sort }) => {
+export const findAll = async ({ page, pageSize, keyword, sort }) => {
   const where = {
     deletedAt: null,
     ...createSearchWhere(keyword),
@@ -120,7 +120,7 @@ const findAll = async ({ page, pageSize, keyword, sort }) => {
 };
 
 // 삭제되지 않은 단일 스터디를 ID로 조회한다.
-const findById = async (studyId) => {
+export const findById = async (studyId) => {
   const study = await prisma.study.findFirst({
     where: {
       id: studyId,
@@ -133,7 +133,7 @@ const findById = async (studyId) => {
 };
 
 // 새 스터디를 생성하고 연결 데이터를 포함해 반환한다.
-const create = async (study) => {
+export const create = async (study) => {
   const createdStudy = await prisma.study.create({
     data: {
       nickname: study.nickname,
@@ -150,8 +150,8 @@ const create = async (study) => {
   return toStudyDto(createdStudy);
 };
 
-// 스터디의 수정 가능한 필드만 업데이트한다.
-const update = async (studyId, updates) => {
+// 전달받은 수정 데이터를 저장하고 연결 데이터를 포함해 반환한다.
+export const update = async (studyId, updates) => {
   const updatedStudy = await prisma.study.update({
     where: {
       id: studyId,
@@ -164,7 +164,7 @@ const update = async (studyId, updates) => {
 };
 
 // 스터디를 실제 삭제하지 않고 deletedAt을 기록해 soft delete 처리한다.
-const remove = async (studyId) => {
+export const remove = async (studyId) => {
   await prisma.study.update({
     where: {
       id: studyId,
@@ -180,8 +180,8 @@ const remove = async (studyId) => {
   };
 };
 
-// 같은 이모지가 있으면 count를 증가시키고, 없으면 새 이모지 row를 생성한다.
-const upsertEmoji = async (studyId, emoji) => {
+// 같은 스터디에 같은 이모지가 있으면 count를 증가시키고, 없으면 새 이모지 row를 생성한다.
+export const upsertEmoji = async (studyId, emoji) => {
   return prisma.studyEmoji.upsert({
     where: {
       studyId_emoji: {

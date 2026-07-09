@@ -1,4 +1,4 @@
-import studyService from "../services/studyService.js";
+import * as studyService from "../services/studyService.js";
 
 // 서비스 계층에서 발생한 에러를 공통 응답 형식으로 변환한다.
 const sendError = (res, error) => {
