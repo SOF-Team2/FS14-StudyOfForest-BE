@@ -9,7 +9,7 @@ Content-Type: application/json
 }
 
 ###
-PATCH http://localhost:3000/habit/94c5ffb1-f566-443b-a61d-554008b33c05
+PATCH http://localhost:3000/habit/fb87889b-350e-4251-9e68-c357af3a5291
 Content-Type: application/json
 
 {

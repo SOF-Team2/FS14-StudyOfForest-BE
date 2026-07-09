@@ -1,32 +1,57 @@
-import * as habitService from '../services/habitService.js';
+import * as habitService from "../services/habitService.js";
 
 export const getHabits = async (req, res) => {
-    const { studyId } = req.params
+  try {
+    const { studyId } = req.params;
+
     const result = await habitService.getHabits(studyId);
 
-    res.send(result);
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(error.status || 500).send({
+      message: error.message || "Internal Server Error",
+    });
+  }
 };
 
 export const createHabit = async (req, res) => {
-  const { studyId } = req.params;
+  try {
+    const { studyId } = req.params;
 
-  const result = await habitService.createHabit(studyId, req.body);
+    const result = await habitService.createHabit(studyId, req.body);
 
-  res.status(201).send(result);
-}
+    res.status(201).send(result);
+  } catch (error) {
+    res.status(error.status || 500).send({
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
 
 export const patchHabit = async (req, res) => {
-  const { habitId } = req.params
+  try {
+    const { habitId } = req.params;
 
-  const result = await habitService.patchHabit(habitId, req.body)
+    const result = await habitService.patchHabit(habitId, req.body);
 
-  res.send(result)
-}
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(error.status || 500).send({
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
 
 export const deleteHabit = async (req, res) => {
-  const { habitId } = req.params
+  try {
+    const { habitId } = req.params;
 
-  const result = await habitService.deleteHabit(habitId)
+    const result = await habitService.deleteHabit(habitId);
 
-  res.send(result)
-}
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(error.status || 500).send({
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
