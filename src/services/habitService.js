@@ -51,11 +51,7 @@ export const patchHabit = async (habitId, data) => {
   if (!habitId) {
     throwError(400, "habitId가 필요합니다.");
   }
-
-  if (!data.name) {
-    throwError(400, "수정할 습관 이름을 입력해주세요.");
-  }
-
+  
   const habit = await prisma.habit.findUnique({
     where: { id: habitId },
   });
