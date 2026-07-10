@@ -1,10 +1,11 @@
-import studyRepository from "../repository/studyRepository.js";
+import * as studyRepository from "../repository/studyRepository.js";
 import { comparePassword, hashPassword } from "../utils/password.js";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 6;
 const MAX_PAGE_SIZE = 50;
 
+// 컨트롤러에서 공통 처리할 수 있도록 상태 코드와 에러 코드를 가진 Error를 만든다.
 const createError = (statusCode, code, message, details) => {
   const error = new Error(message);
   error.statusCode = statusCode;
@@ -15,6 +16,7 @@ const createError = (statusCode, code, message, details) => {
 
 const normalizeString = (value) => (typeof value === "string" ? value.trim() : "");
 
+// 페이지와 페이지 크기 query를 양의 정수로 정규화한다.
 const normalizePositiveInteger = (value, fallback) => {
   const parsedValue = Number.parseInt(value, 10);
 
@@ -25,6 +27,7 @@ const normalizePositiveInteger = (value, fallback) => {
   return parsedValue;
 };
 
+// 생성 API에서 허용하는 대체 필드명을 내부 표준 필드명으로 정리한다.
 const normalizeCreatePayload = (payload = {}) => ({
   nickname: normalizeString(payload.nickname),
   name: normalizeString(payload.name ?? payload.studyName),
@@ -35,11 +38,13 @@ const normalizeCreatePayload = (payload = {}) => ({
   passwordConfirmation: normalizeString(payload.passwordConfirmation ?? payload.passwordConfirm),
 });
 
+// API 응답에 비밀번호 관련 값이 포함되지 않도록 제거한다.
 const sanitizeStudy = (study) => {
   const { passwordHash, password, ...safeStudy } = study;
   return safeStudy;
 };
 
+// 필수 입력값 누락 여부를 확인한다.
 const validateRequiredFields = (fields) => {
   const missingFields = Object.entries(fields)
     .filter(([, value]) => !normalizeString(value))
@@ -52,6 +57,7 @@ const validateRequiredFields = (fields) => {
   }
 };
 
+// 스터디 존재 여부를 확인하고 없으면 404 에러를 발생시킨다.
 const getStudyOrThrow = async (studyId) => {
   const study = await studyRepository.findById(studyId);
 
@@ -62,6 +68,7 @@ const getStudyOrThrow = async (studyId) => {
   return study;
 };
 
+// 수정/삭제 요청에서 입력 비밀번호와 저장된 비밀번호 hash를 비교한다.
 const verifyPassword = async (study, password) => {
   if (!normalizeString(password)) {
     throw createError(400, "PASSWORD_REQUIRED", "비밀번호를 입력해주세요.");
@@ -74,6 +81,7 @@ const verifyPassword = async (study, password) => {
   }
 };
 
+// 목록 조회 query를 pagination, search, sort 파라미터로 정리한다.
 const getListParams = (query = {}) => {
   const page = normalizePositiveInteger(query.page, DEFAULT_PAGE);
   const pageSize = Math.min(
@@ -91,7 +99,8 @@ const getListParams = (query = {}) => {
   };
 };
 
-const listStudies = async (query = {}) => {
+// 스터디 목록을 페이지네이션, 검색, 정렬 조건으로 조회한다.
+export const listStudies = async (query = {}) => {
   const params = getListParams(query);
   const { items, totalCount } = await studyRepository.findAll(params);
   const totalPages = Math.ceil(totalCount / params.pageSize);
@@ -107,12 +116,14 @@ const listStudies = async (query = {}) => {
   };
 };
 
-const getStudy = async (studyId) => {
+// 단일 스터디 상세 정보를 조회한다.
+export const getStudy = async (studyId) => {
   const study = await getStudyOrThrow(studyId);
   return sanitizeStudy(study);
 };
 
-const createStudy = async (payload = {}) => {
+// 필수값과 비밀번호 확인을 검증한 뒤 스터디를 생성한다.
+export const createStudy = async (payload = {}) => {
   const normalizedPayload = normalizeCreatePayload(payload);
 
   validateRequiredFields({
@@ -145,7 +156,8 @@ const createStudy = async (payload = {}) => {
   return sanitizeStudy(study);
 };
 
-const updateStudy = async (studyId, payload = {}) => {
+// 비밀번호 검증 후 전달된 필드만 골라 스터디를 수정한다.
+export const updateStudy = async (studyId, payload = {}) => {
   const study = await getStudyOrThrow(studyId);
   await verifyPassword(study, payload.password);
 
@@ -170,14 +182,16 @@ const updateStudy = async (studyId, payload = {}) => {
   return sanitizeStudy(updatedStudy);
 };
 
-const deleteStudy = async (studyId, payload = {}) => {
+// 비밀번호 검증 후 스터디를 soft delete 처리한다.
+export const deleteStudy = async (studyId, payload = {}) => {
   const study = await getStudyOrThrow(studyId);
   await verifyPassword(study, payload.password);
 
   return studyRepository.remove(studyId);
 };
 
-const addEmoji = async (studyId, payload = {}) => {
+// 스터디 응원 이모지를 생성하거나 기존 이모지 count를 증가시킨다.
+export const addEmoji = async (studyId, payload = {}) => {
   await getStudyOrThrow(studyId);
 
   const emoji = normalizeString(payload.emoji);
