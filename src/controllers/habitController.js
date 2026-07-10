@@ -70,3 +70,17 @@ export const createHabitRecord = async (req, res) => {
     });
   }
 }
+
+export const toggleHabitRecord = async (req, res) => {
+   try {
+    const { recordId } = req.params;
+
+    const result = await habitService.toggleHabitRecord(recordId);
+
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(error.status || 500).send({
+      message: error.message || "Internal Server Error",
+    });
+  }
+}

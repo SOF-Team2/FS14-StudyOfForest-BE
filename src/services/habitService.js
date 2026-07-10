@@ -127,3 +127,25 @@ export const createHabitRecord = async (habitId) => {
     },
   });
 };
+
+export const toggleHabitRecord = async (recordId) => {
+  if (!recordId) {
+    throwError(400, "recordId가 필요합니다.");
+  }
+
+  const habitRecord = await prisma.habitRecord.findUnique({
+    where: { id: recordId },
+  });
+
+  if (!habitRecord) {
+    throwError(404, "습관 기록을 찾을 수 없습니다.");
+  }
+
+  return prisma.habitRecord.update({
+    where: { 
+      id: recordId 
+    },
+    data: { 
+      isChecked: !habitRecord.isChecked }
+  })
+}
