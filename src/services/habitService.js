@@ -105,3 +105,25 @@ export const deleteHabit = async (habitId) => {
     },
   });
 };
+
+export const createHabitRecord = async (habitId) => {
+  if (!habitId) {
+    throwError(400, "habitId가 필요합니다.");
+  }
+
+  const habit = await prisma.habit.findUnique({
+    where: { id: habitId },
+  });
+
+  if (!habit || habit.habitStatus === "INACTIVE") {
+    throwError(404, "습관을 찾을 수 없습니다.");
+  }
+
+  return prisma.habitRecord.create({
+    data: {
+      habitId,
+      recordDate: new Date(),
+      isChecked: true,
+    },
+  });
+};

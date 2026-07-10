@@ -56,3 +56,17 @@ export const deleteHabit = async (req, res) => {
     });
   }
 };
+
+export const createHabitRecord = async (req, res) => {
+  try {
+    const { habitId } = req.params;
+
+    const result = await habitService.createHabitRecord(habitId);
+
+    res.status(201).send(result);
+  } catch (error) {
+    res.status(error.status || 500).send({
+      message: error.message || "Internal Server Error",
+    });
+  }
+}

@@ -18,3 +18,6 @@ Content-Type: application/json
 
 ###
 DELETE http://localhost:3000/habit/94c5ffb1-f566-443b-a61d-554008b33c05
+
+###
+POST http://localhost:3000/habit/b846da4b-4466-47f0-956f-ac125e1ff11e/record
