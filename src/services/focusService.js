@@ -1,14 +1,5 @@
-import 'dotenv/config'
-import pkg from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-
 import { comparePassword } from '../utils/password.js';
 import * as focusRepository from '../repository/focusRepository.js';
-
-const { PrismaClient } = pkg;
-
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
 
 // 스터디 데이터 조회
 export const getFocusStudyData = async (studyId, password) => {
@@ -33,7 +24,7 @@ export const getFocusStudyData = async (studyId, password) => {
       emoji: emojiItem.emoji,
       count: emojiItem.count,
     })),
-  }
+  };
 }
 
 //비밀번호 검증 기능 구현 (함수로 분리)
