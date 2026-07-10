@@ -12,7 +12,7 @@ export const getFocusStudyData = async (studyId, password) => {
   if (!study) {
     const error = new Error('오늘의 집중 데이터를 찾을 수 없습니다.')
     error.status = 404
-    error.code = 'FOCUS_STUDY_NOT_FOUND'
+    error.code = 'FOCUS_STUDY_NOT_FOUND';
     throw error
   }
 
@@ -37,7 +37,7 @@ export async function verifyStudyPassword(studyId, password) {
   if (!study) {
     const error = new Error('오늘의 집중 페이지에 접근 할 수 없습니다.');
     error.status = 404;
-    error.code = 'FOCUS_STUDY_NOT_FOUND';
+    error.code = 'STUDY_NOT_FOUND';
     throw error;
   }
 
