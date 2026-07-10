@@ -1,11 +1,19 @@
 import dotenv from "dotenv";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client";
+import {
+  PrismaPg
+} from "@prisma/adapter-pg";
+import {
+  PrismaClient
+} from "@prisma/client";
 
 dotenv.config();
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL
+});
+const prisma = new PrismaClient({
+  adapter
+});
 
 const throwError = (status, message) => {
   const error = new Error(message);
@@ -17,11 +25,26 @@ export const getHabits = async (studyId) => {
   if (!studyId) {
     throwError(400, "studyId가 필요합니다.");
   }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
 
   return prisma.habit.findMany({
     where: {
       studyId,
       habitStatus: "ACTIVE",
+    },
+    include: {
+      habitRecords: {
+        where: {
+          recordDate: {
+            gte: today,
+            lt: tomorrow,
+          },
+        },
+      },
     },
     orderBy: {
       createdAt: "asc",
@@ -88,7 +111,9 @@ export const deleteHabit = async (habitId) => {
   }
 
   const habit = await prisma.habit.findUnique({
-    where: { id: habitId },
+    where: {
+      id: habitId
+    },
   });
 
   if (!habit || habit.habitStatus === "INACTIVE") {
@@ -112,7 +137,9 @@ export const createHabitRecord = async (habitId) => {
   }
 
   const habit = await prisma.habit.findUnique({
-    where: { id: habitId },
+    where: {
+      id: habitId
+    },
   });
 
   if (!habit || habit.habitStatus === "INACTIVE") {
@@ -134,7 +161,9 @@ export const toggleHabitRecord = async (recordId) => {
   }
 
   const habitRecord = await prisma.habitRecord.findUnique({
-    where: { id: recordId },
+    where: {
+      id: recordId
+    },
   });
 
   if (!habitRecord) {
@@ -142,10 +171,11 @@ export const toggleHabitRecord = async (recordId) => {
   }
 
   return prisma.habitRecord.update({
-    where: { 
-      id: recordId 
+    where: {
+      id: recordId
     },
-    data: { 
-      isChecked: !habitRecord.isChecked }
+    data: {
+      isChecked: !habitRecord.isChecked
+    }
   })
 }
