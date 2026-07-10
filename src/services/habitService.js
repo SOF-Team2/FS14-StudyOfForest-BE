@@ -47,25 +47,37 @@ export const createHabit = async (studyId, data) => {
   });
 };
 
-export const patchHabit = async (habitId, data) => {
-  if (!habitId) {
-    throwError(400, "habitId가 필요합니다.");
-  }
-  
-  const habit = await prisma.habit.findUnique({
-    where: { id: habitId },
+export const updateHabit = async (studyId, habits) => {
+  const operations = habits.map((habit) => {
+    if (habit.id) {
+      return prisma.habit.update({
+        where: {
+          id: habit.id,
+        },
+        data: {
+          name: habit.name,
+          startDate: habit.startDate
+        },
+      });
+    }
+
+    return prisma.habit.create({
+      data: {
+        studyId,
+        name: habit.name,
+        startDate: new Date()
+      },
+    });
   });
 
-  if (!habit || habit.habitStatus === "INACTIVE") {
-    throwError(404, "습관을 찾을 수 없습니다.");
-  }
+  await prisma.$transaction(operations);
 
-  return prisma.habit.update({
+  return prisma.habit.findMany({
     where: {
-      id: habitId,
+      studyId,
     },
-    data: {
-      name: data.name,
+    orderBy: {
+      createdAt: 'asc',
     },
   });
 };

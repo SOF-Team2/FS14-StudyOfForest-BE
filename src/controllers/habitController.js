@@ -28,12 +28,13 @@ export const createHabit = async (req, res) => {
   }
 };
 
-export const patchHabit = async (req, res) => {
+export const updateHabit = async (req, res) => {
   try {
-    const { habitId } = req.params;
-
-    const result = await habitService.patchHabit(habitId, req.body);
-
+    const { studyId } = req.params;
+    const habits = req.body;
+    
+    const result = await habitService.updateHabit(studyId, habits);
+    
     res.status(200).send(result);
   } catch (error) {
     res.status(error.status || 500).send({
