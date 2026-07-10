@@ -7,7 +7,6 @@ router.post("/", habitController.createHabit)
 router.patch("/", habitController.updateHabit)
 router.delete("/:habitId", habitController.deleteHabit)
 
-router.post("/:habitId/record", habitController.createHabitRecord)
-router.patch("/record/:recordId", habitController.toggleHabitRecord)
+router.patch("/:habitId/record", habitController.toggleHabitRecord)
 
 export default router;

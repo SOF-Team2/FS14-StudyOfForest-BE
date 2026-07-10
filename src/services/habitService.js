@@ -131,7 +131,7 @@ export const deleteHabit = async (habitId) => {
   });
 };
 
-export const createHabitRecord = async (habitId) => {
+export const toggleHabitRecord = async (habitId) => {
   if (!habitId) {
     throwError(400, "habitId가 필요합니다.");
   }
@@ -146,36 +146,31 @@ export const createHabitRecord = async (habitId) => {
     throwError(404, "습관을 찾을 수 없습니다.");
   }
 
-  return prisma.habitRecord.create({
-    data: {
-      habitId,
-      recordDate: new Date(),
-      isChecked: true,
-    },
-  });
-};
-
-export const toggleHabitRecord = async (recordId) => {
-  if (!recordId) {
-    throwError(400, "recordId가 필요합니다.");
-  }
-
-  const habitRecord = await prisma.habitRecord.findUnique({
+  const habitRecord = await prisma.habitRecord.findFirst({
     where: {
-      id: recordId
+      habitId,
     },
-  });
+    orderBy: {
+      createdAt: 'desc',
+    },
+  })
 
   if (!habitRecord) {
-    throwError(404, "습관 기록을 찾을 수 없습니다.");
+    return prisma.habitRecord.create({
+      data: {
+        habitId,
+        recordDate: new Date(),
+        isChecked: true,
+      },
+    })
   }
 
   return prisma.habitRecord.update({
-    where: {
-      id: recordId
+    where: { 
+      id: habitRecord.id
     },
-    data: {
-      isChecked: !habitRecord.isChecked
+    data: { 
+      isChecked: !habitRecord.isChecked 
     }
   })
 }
