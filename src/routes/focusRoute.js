@@ -3,7 +3,7 @@ import * as focusController from '../controllers/focusController.js';
 
 const router = express.Router({ mergeParams: true });
 
-router.post('/:id/focus', focusController.getFocusData);
-router.patch('/:id/focus/point', focusController.updateFocusPointController);
+router.post('/:studyId/focus', focusController.getFocusData);
+router.patch('/:studyId/focus/point', focusController.updateFocusPointController);
 
 export default router

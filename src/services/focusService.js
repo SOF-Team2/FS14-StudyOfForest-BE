@@ -46,6 +46,15 @@ export async function verifyStudyPassword(studyId, password) {
   if (!study) {
     const error = new Error('오늘의 집중 페이지에 접근 할 수 없습니다.');
     error.status = 404;
+    error.code = 'FOCUS_STUDY_NOT_FOUND';
+    throw error;
+  }
+
+  //비밀번호가 없을 경우 400
+  if (!password) {
+    const error = new Error('비밀번호를 확인해주세요.');
+    error.status = 400;
+    error.code = 'MISSING_PASSWORD';
     throw error;
   }
 
@@ -54,6 +63,7 @@ export async function verifyStudyPassword(studyId, password) {
   if (!isMatch) {
     const error = new Error('비밀번호가 올바르지 않습니다.');
     error.status = 401;
+    error.code = 'INVALID_PASSWORD';
     throw error;
   }
   //스터디가 있고, 패스워드가 동일하면 스터디를 던져준다.
@@ -68,6 +78,7 @@ export async function updateFocusPoint(studyId, password, point) {
   if (typeof point !== 'number' || point < 0) {
     const error = new Error('포인트 값이 올바르지 않습니다.');
     error.status = 400;
+    error.code = 'INVALID_POINT';
     throw error;
   }
 
