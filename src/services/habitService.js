@@ -160,17 +160,28 @@ export const toggleHabitRecord = async (habitId) => {
       data: {
         habitId,
         recordDate: new Date(),
-        isChecked: true,
+        isChecked: false,
       },
     })
-  }
-
-  return prisma.habitRecord.update({
-    where: { 
-      id: habitRecord.id
-    },
-    data: { 
-      isChecked: !habitRecord.isChecked 
+  } else {
+    if (habitRecord.isChecked) {
+      return prisma.habitRecord.update({
+      where: { 
+        id: habitRecord.id
+      },
+      data: { 
+        isChecked: false 
+      }
+    })
+    } else {
+      return prisma.habitRecord.update({
+      where: { 
+        id: habitRecord.id
+      },
+      data: { 
+        isChecked: true 
+      }
+    })
     }
-  })
+  }
 }
