@@ -57,25 +57,11 @@ export const deleteHabit = async (req, res) => {
   }
 };
 
-export const createHabitRecord = async (req, res) => {
-  try {
-    const { habitId } = req.params;
-
-    const result = await habitService.createHabitRecord(habitId);
-
-    res.status(201).send(result);
-  } catch (error) {
-    res.status(error.status || 500).send({
-      message: error.message || "Internal Server Error",
-    });
-  }
-}
-
 export const toggleHabitRecord = async (req, res) => {
    try {
-    const { recordId } = req.params;
+    const { habitId } = req.params;
 
-    const result = await habitService.toggleHabitRecord(recordId);
+    const result = await habitService.toggleHabitRecord(habitId);
 
     res.status(200).send(result);
   } catch (error) {
@@ -83,4 +69,4 @@ export const toggleHabitRecord = async (req, res) => {
       message: error.message || "Internal Server Error",
     });
   }
-}
+};

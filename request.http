@@ -20,7 +20,5 @@ Content-Type: application/json
 DELETE http://localhost:3000/
 
 ###
-POST http://localhost:3000/study/eddc1d7a-8ac3-4e1c-be36-cb9d2c5dea9c/habit/00bd04a7-815d-415d-b2c7-d11f367b4541/record
+PATCH http://localhost:3000/study/eddc1d7a-8ac3-4e1c-be36-cb9d2c5dea9c/habit/4593dbd0-009c-452e-9017-bef20274573b/record
 
-###
-PATCH http://localhost:3000/study/eddc1d7a-8ac3-4e1c-be36-cb9d2c5dea9c/habit/record/b2c01f70-3957-455f-8988-5d2e38a65f7f
