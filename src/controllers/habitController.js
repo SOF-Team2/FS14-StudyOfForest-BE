@@ -66,7 +66,21 @@ export const toggleHabitRecord = async (req, res) => {
     res.status(200).send(result);
   } catch (error) {
     res.status(error.status || 500).send({
-      message: error.message || "Internal Server Error",
+      message: error.message || "Internal Server Error"
     });
   }
 };
+
+export const getWeeklyHabitRecords = async (req, res) => {
+  try {
+    const { studyId } = req.params;
+
+    const result = await habitService.getWeeklyHabitRecords(studyId);
+
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(error.status || 500).send({
+      message: error.message || "Internal Server Error"
+    });
+  }
+}

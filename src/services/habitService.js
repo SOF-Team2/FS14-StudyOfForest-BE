@@ -160,7 +160,7 @@ export const toggleHabitRecord = async (habitId) => {
       data: {
         habitId,
         recordDate: new Date(),
-        isChecked: false,
+        isChecked: true,
       },
     })
   } else {
@@ -184,4 +184,39 @@ export const toggleHabitRecord = async (habitId) => {
     })
     }
   }
+}
+
+function getWeekRange(date = new Date()) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+
+  const day = start.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+
+  start.setDate(start.getDate() + diff);
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + 7);
+
+  return { start, end };
+}
+
+export const getWeeklyHabitRecords = async (studyId) => {
+  const { start, end } = getWeekRange();
+
+  return prisma.habit.findMany({
+    where: {
+      studyId,
+      habitStatus: "ACTIVE",
+    },
+    include: {
+      habitRecords: {
+        where: {
+          recordDate: {
+                gte: start,
+                lt: end,
+          },
+        },
+      }
+    }});
 }
