@@ -78,8 +78,7 @@ export const updateHabit = async (studyId, habits) => {
           id: habit.id,
         },
         data: {
-          name: habit.name,
-          startDate: habit.startDate
+          name: habit.name
         },
       });
     }
