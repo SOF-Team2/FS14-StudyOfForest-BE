@@ -138,7 +138,7 @@ export const toggleHabitRecord = async (habitId) => {
 
   const habit = await prisma.habit.findUnique({
     where: {
-      id: habitId
+      id: habitId,
     },
   });
 
@@ -146,45 +146,41 @@ export const toggleHabitRecord = async (habitId) => {
     throwError(404, "습관을 찾을 수 없습니다.");
   }
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
   const habitRecord = await prisma.habitRecord.findFirst({
     where: {
       habitId,
+      recordDate: {
+        gte: today,
+        lt: tomorrow,
+      },
     },
-    orderBy: {
-      createdAt: 'desc',
-    },
-  })
+  });
 
   if (!habitRecord) {
     return prisma.habitRecord.create({
       data: {
         habitId,
-        recordDate: new Date(),
+        recordDate: today,
         isChecked: true,
       },
-    })
-  } else {
-    if (habitRecord.isChecked) {
-      return prisma.habitRecord.update({
-      where: { 
-        id: habitRecord.id
-      },
-      data: { 
-        isChecked: false 
-      }
-    })
-    } else {
-      return prisma.habitRecord.update({
-      where: { 
-        id: habitRecord.id
-      },
-      data: { 
-        isChecked: true 
-      }
-    })
-    }
+    });
   }
-}
+
+  return prisma.habitRecord.update({
+    where: {
+      id: habitRecord.id,
+    },
+    data: {
+      isChecked: !habitRecord.isChecked,
+    },
+  });
+};
 
 function getWeekRange(date = new Date()) {
   const start = new Date(date);
