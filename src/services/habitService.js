@@ -16,8 +16,32 @@ export const getHabits = async (studyId) => {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
-  return prisma.habit.findMany({
+  // return prisma.habit.findMany({
+  //   where: {
+  //     studyId,
+  //     habitStatus: "ACTIVE",
+  //   },
+  //   include: {
+  //     habitRecords: {
+  //       where: {
+  //         recordDate: {
+  //           gte: today,
+  //           lt: tomorrow,
+  //         },
+  //       },
+  //     },
+  //   },
+  //   orderBy: {
+  //     createdAt: "asc",
+  //   },
+  // });
+  return prisma.study.findUnique({
     where: {
+      id: studyId
+   },
+   include: {
+    habits: {
+      where: {
       studyId,
       habitStatus: "ACTIVE",
     },
@@ -33,8 +57,10 @@ export const getHabits = async (studyId) => {
     },
     orderBy: {
       createdAt: "asc",
-    },
-  });
+    }
+    }
+   }
+  })
 };
 
 export const createHabit = async (studyId, data) => {
