@@ -1,7 +1,4 @@
-import dotenv from "dotenv";
 import prisma from "../lib/prisma.js";
-
-dotenv.config();
 
 const throwError = (status, message) => {
   const error = new Error(message);
