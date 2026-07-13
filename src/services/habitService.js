@@ -197,6 +197,10 @@ export const getWeeklyHabitRecords = async (studyId) => {
                 lt: end,
           },
         },
-      }
-    }});
+      },
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
 }
