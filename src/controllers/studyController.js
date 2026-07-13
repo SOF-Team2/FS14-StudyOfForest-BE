@@ -55,6 +55,17 @@ export const updateStudy = async (req, res) => {
   }
 };
 
+// 스터디 비밀번호 확인 요청을 처리한다.
+export const verifyStudyPassword = async (req, res) => {
+  try {
+    return res.status(200).json({
+      data: await studyService.verifyStudyPassword(req.params.studyId, req.body),
+    });
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
 // 비밀번호 검증 후 스터디 삭제 요청을 처리한다.
 export const deleteStudy = async (req, res) => {
   try {

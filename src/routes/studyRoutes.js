@@ -13,6 +13,7 @@ router.use("/", focusRoute);
 
 // 특정 스터디의 상세 조회, 수정, 삭제 요청을 처리한다.
 router.get("/:studyId", studyController.getStudy);
+router.post("/:studyId/password/verify", studyController.verifyStudyPassword);
 router.patch("/:studyId", studyController.updateStudy);
 router.delete("/:studyId", studyController.deleteStudy);
 
