@@ -1,0 +1,24 @@
+GET http://localhost:3000/study/eddc1d7a-8ac3-4e1c-be36-cb9d2c5dea9c/habit
+
+###
+POST http://localhost:3000/study/eddc1d7a-8ac3-4e1c-be36-cb9d2c5dea9c/habit
+Content-Type: application/json
+
+{
+  "name": "React 개념 정리하기"
+}
+
+###
+PATCH http://localhost:3000/habit/fb87889b-350e-4251-9e68-c357af3a5291
+Content-Type: application/json
+
+{
+  "name": "알고리즘 2문제 풀기"
+}
+
+###
+DELETE http://localhost:3000/
+
+###
+PATCH http://localhost:3000/study/eddc1d7a-8ac3-4e1c-be36-cb9d2c5dea9c/habit/4593dbd0-009c-452e-9017-bef20274573b/record
+
