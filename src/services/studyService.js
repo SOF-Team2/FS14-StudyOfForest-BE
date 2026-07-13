@@ -156,10 +156,9 @@ export const createStudy = async (payload = {}) => {
   return sanitizeStudy(study);
 };
 
-// 비밀번호 검증 후 전달된 필드만 골라 스터디를 수정한다.
+// 전달된 필드만 골라 스터디를 수정하고, 비밀번호 변경 시에만 현재 비밀번호를 검증한다.
 export const updateStudy = async (studyId, payload = {}) => {
   const study = await getStudyOrThrow(studyId);
-  await verifyPassword(study, payload.password);
 
   const updates = {};
   const name = normalizeString(payload.name ?? payload.studyName);
@@ -167,12 +166,38 @@ export const updateStudy = async (studyId, payload = {}) => {
   const description = normalizeString(payload.description ?? payload.intro ?? payload.introduction);
   const backgroundType = normalizeString(payload.backgroundType);
   const backgroundValue = normalizeString(payload.backgroundValue ?? payload.background);
+  const newPassword = normalizeString(payload.newPassword);
+  const newPasswordConfirmation = normalizeString(
+    payload.newPasswordConfirmation ?? payload.newPasswordConfirm,
+  );
+  const shouldChangePassword = Boolean(newPassword || newPasswordConfirmation);
 
   if (name) updates.name = name;
   if (nickname) updates.nickname = nickname;
   if (description) updates.description = description;
   if (backgroundType) updates.backgroundType = backgroundType;
   if (backgroundValue) updates.backgroundValue = backgroundValue;
+  if (shouldChangePassword) {
+    await verifyPassword(study, payload.password);
+
+    if (!newPassword || !newPasswordConfirmation) {
+      throw createError(
+        400,
+        "PASSWORD_CONFIRMATION_REQUIRED",
+        "새 비밀번호와 새 비밀번호 확인을 모두 입력해주세요.",
+      );
+    }
+
+    if (newPassword !== newPasswordConfirmation) {
+      throw createError(
+        400,
+        "PASSWORD_CONFIRMATION_MISMATCH",
+        "새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.",
+      );
+    }
+
+    updates.passwordHash = await hashPassword(newPassword);
+  }
 
   if (Object.keys(updates).length === 0) {
     throw createError(400, "EMPTY_UPDATE", "수정할 값을 입력해주세요.");
@@ -180,6 +205,14 @@ export const updateStudy = async (studyId, payload = {}) => {
 
   const updatedStudy = await studyRepository.update(studyId, updates);
   return sanitizeStudy(updatedStudy);
+};
+
+// 상세 페이지 진입 등에서 스터디 비밀번호가 맞는지 확인한다.
+export const verifyStudyPassword = async (studyId, payload = {}) => {
+  const study = await getStudyOrThrow(studyId);
+  await verifyPassword(study, payload.password);
+
+  return { verified: true };
 };
 
 // 비밀번호 검증 후 스터디를 soft delete 처리한다.
@@ -215,6 +248,7 @@ export default {
   getStudy,
   createStudy,
   updateStudy,
+  verifyStudyPassword,
   deleteStudy,
   addEmoji,
 };
