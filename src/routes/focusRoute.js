@@ -1,9 +1,9 @@
 import express from 'express';
 import * as focusController from '../controllers/focusController.js';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
-router.post('/:studyId/focus', focusController.getFocusData);
-router.patch('/:studyId/focus/point', focusController.updateFocusPointController);
+router.post('/', focusController.getFocusData);
+router.patch('/point', focusController.updateFocusPointController);
 
 export default router;
