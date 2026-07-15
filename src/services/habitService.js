@@ -1,5 +1,6 @@
 import prisma from "../lib/prisma.js";
 
+
 const throwError = (status, message) => {
   const error = new Error(message);
   error.status = status;
