@@ -188,8 +188,8 @@ function getWeekRange(date = new Date()) {
   return { start, end };
 }
 
-export const getWeeklyHabitRecords = async (studyId) => {
-  const { start, end } = getWeekRange();
+export const getWeeklyHabitRecords = async (studyId, date) => {
+  const { start, end } = getWeekRange(date);
 
   return prisma.habit.findMany({
     where: {
