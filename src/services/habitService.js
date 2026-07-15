@@ -1,6 +1,5 @@
 import prisma from "../lib/prisma.js";
 
-
 const throwError = (status, message) => {
   const error = new Error(message);
   error.status = status;
@@ -189,8 +188,8 @@ function getWeekRange(date = new Date()) {
   return { start, end };
 }
 
-export const getWeeklyHabitRecords = async (studyId) => {
-  const { start, end } = getWeekRange();
+export const getWeeklyHabitRecords = async (studyId, date) => {
+  const { start, end } = getWeekRange(date);
 
   return prisma.habit.findMany({
     where: {

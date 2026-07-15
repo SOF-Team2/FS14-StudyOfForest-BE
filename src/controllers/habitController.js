@@ -74,8 +74,11 @@ export const toggleHabitRecord = async (req, res) => {
 export const getWeeklyHabitRecords = async (req, res) => {
   try {
     const { studyId } = req.params;
+    const { date } = req.query;
 
-    const result = await habitService.getWeeklyHabitRecords(studyId);
+    const selectedDate = date ? new Date(`${date}T00:00:00`) : new Date();
+
+    const result = await habitService.getWeeklyHabitRecords(studyId, selectedDate);
 
     res.status(200).send(result);
   } catch (error) {
