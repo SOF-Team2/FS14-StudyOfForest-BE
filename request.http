@@ -22,3 +22,5 @@ DELETE http://localhost:3000/
 ###
 PATCH http://localhost:3000/study/eddc1d7a-8ac3-4e1c-be36-cb9d2c5dea9c/habit/4593dbd0-009c-452e-9017-bef20274573b/record
 
+###
+GET http://localhost:3000/ranking/study
