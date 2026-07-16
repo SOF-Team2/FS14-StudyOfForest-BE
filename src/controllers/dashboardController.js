@@ -19,6 +19,6 @@ export const getMyDashboard = async (req, res) => {
       data: await dashboardService.getDashboard(userId),
     });
   } catch (error) {
-    return sendError(res.error);
+    return sendError(res, error);
   }
 };
