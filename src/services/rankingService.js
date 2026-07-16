@@ -18,3 +18,22 @@ export const getStudyRankings = async () => {
     ...study,
   }));
 };
+
+// 포인트 점수 기준 내림차순으로 유저 랭킹 가져오기
+export const getUserRankings = async () => {
+  const users = await prisma.user.findMany({
+    orderBy: {
+      point: "desc",
+    },
+    select: {
+      id: true,
+      nickname: true,
+      point: true,
+    },
+  })
+
+  return users.map((user, index) => ({
+    rank: index + 1,
+    ...user,
+  }));
+};

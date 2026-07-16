@@ -10,3 +10,14 @@ export const getStudyRankings = async (req, res) => {
     });
   }
 };
+
+export const getUserRankings = async (req, res) => {
+  try {
+    const result = await rankingService.getUserRankings();
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(error.status || 500).send({
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
