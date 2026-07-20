@@ -22,7 +22,8 @@ model User {
   updatedAt DateTime @updatedAt
 
   studyMembers StudyMember[]
-  habitRecords HabitRecord[]
+  // ↓ habitRecord 모델에 userId 컬럼이 없으므로 habitRecords 관계 임시 제거
+  // habitRecords HabitRecord[]
 
   @@index([point])
 }
