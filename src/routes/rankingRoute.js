@@ -5,5 +5,6 @@ const router = express.Router();
 
 router.get("/study", rankingController.getStudyRankings);
 router.get("/user", rankingController.getUserRankings);
+router.get("/previous-week", rankingController.getPreviousRankings);
 
 export default router;

@@ -21,3 +21,14 @@ export const getUserRankings = async (req, res) => {
     });
   }
 };
+
+export const getPreviousRankings = async (req, res) => {
+  try {
+    const result = await rankingService.getPreviousRankings();
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(error.status || 500).send({
+      message: error.message || "Internal Server Error",
+    });
+  }
+};

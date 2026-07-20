@@ -29,3 +29,6 @@ GET http://localhost:3000/ranking/study
 
 ###
 GET http://localhost:3000/ranking/user
+
+###
+GET http://localhost:3000/ranking/previous-week
