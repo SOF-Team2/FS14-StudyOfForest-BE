@@ -21,3 +21,9 @@ export const countMembers = async (studyId) => {
     return count;
 }
 
+export const getMember = async (userId, studyId) => {
+    const member = await studyMemberRepository.findMember(userId, studyId);
+    const isHost = member?.role ==="HOST";
+    return isHost;
+}
+

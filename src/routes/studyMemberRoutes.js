@@ -6,6 +6,6 @@ router.get("/", studyMemberController.getMembers);
 router.post("/", studyMemberController.join);
 router.delete("/", studyMemberController.removeStudy);
 router.get("/count", studyMemberController.countMembers);
-
+router.get("/check",studyMemberController.getMember);
 
 export default router;

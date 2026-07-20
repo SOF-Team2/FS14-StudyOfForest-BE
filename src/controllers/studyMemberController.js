@@ -27,3 +27,10 @@ export const countMembers= async (req, res) => {
     res.json(count);
 }
 
+export const getMember = async (req, res) => {
+    const userId = req.body.userId;
+    const studyId = req.params.studyId;
+    const member = await studyMemberService.getMember(userId,studyId)
+    res.json(member);
+} 
+

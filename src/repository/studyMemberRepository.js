@@ -42,3 +42,15 @@ export const countByStudyId = async (studyId) => {
     })
     return count;
 }
+
+//HOST 권한 확인
+export const findMember = async(userId,studyId) => {
+    const member = await prisma.studyMember.findFirst({
+        where: {
+
+            userId: userId,
+            studyId: studyId,
+    },
+    })
+    return member;
+}
