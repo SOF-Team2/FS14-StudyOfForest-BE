@@ -13,3 +13,10 @@ export const join = async (req, res) => {
     const member = await studyMemberService.join(userId,studyId)
     res.json(member);
 }
+
+export const removeStudy = async (req, res) => {
+    const userId = req.body.userId;
+    const studyId = req.params.studyId;
+    const member = await studyMemberService.removeStudy(userId,studyId)
+    res.json(member);
+}
