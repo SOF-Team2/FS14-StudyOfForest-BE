@@ -28,18 +28,12 @@ export const getFocusStudyData = async (studyId, password) => {
 }
 
 //비밀번호 검증
-export async function verifyStudyPassword(studyId, userId, password) {
+export async function verifyStudyPassword(studyId, password) {
   const study = await focusRepository.findStudyPasswordById(studyId);
   if (!study) {
     const error = new Error('오늘의 집중 페이지에 접근 할 수 없습니다.');
     error.status = 404;
     error.code = 'STUDY_NOT_FOUND';
-    throw error;
-  }
-  if (!userId) {
-    const error = new Error('사용자를 찾을 수 없습니다.');
-    error.status = 404;
-    error.code = 'USER_NOT_FOUND';
     throw error;
   }
   if (!password) {
@@ -80,7 +74,8 @@ export function calculatePoint(durationSeconds) {
 
 export async function createFocusSession({ loginId, studyId, password, startedAt, durationSeconds }) {
   try {
-    await verifyStudyPassword(studyId, loginId, password);
+    //해당 부분은 '스터디'의 비밀번호를 검증하는 함수. 차후 인증 방식이 변경 시 변경해야 함.
+    await verifyStudyPassword(studyId, password);
 
     const user = await focusRepository.findUserByLoginId(loginId);
     if (!user) {
@@ -112,6 +107,34 @@ export async function createFocusSession({ loginId, studyId, password, startedAt
       userPoint: updatedUser.point,
       studyPoint: updatedStudy.point,
     };
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getFocusStatistics({ loginId, studyId, password, scope }) {
+  try {
+    await verifyStudyPassword(studyId, password);
+    const user = await focusRepository.findUserByLoginId(loginId);
+
+    if (!user) {
+      const error = new Error('사용자를 찾을 수 없습니다.');
+      error.status = 404;
+      error.code = 'USER_NOT_FOUND';
+      throw error;
+    }
+    const { id: userId } = user;
+
+    const sessions = await focusRepository.findFocusSessions({
+      userId: scope === 'all' ? undefined : userId,
+      studyId,
+    });
+
+    const totalSeconds = sessions.reduce((sum, session) => sum + session.durationSeconds, 0);
+    //scope가 all이면 팀 전체, me면 이 스터디에서 번 내 점수 (스터디에서만)
+    const totalPoint = sessions.reduce((sum, session) => sum + session.point, 0);
+
+    return { totalSeconds, totalPoint, sessions };
   } catch (error) {
     throw error;
   }

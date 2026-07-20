@@ -61,3 +61,22 @@ export async function createFocusSession({ userId, studyId, startedAt, durationS
     select: { id: true, startedAt: true, durationSeconds: true, point: true },
   });
 }
+
+export async function findFocusSessions({ userId, studyId }) {
+  return await prisma.focusSession.findMany({
+    where: {
+      studyId,
+      ...(userId && { userId }),
+    },
+    select: {
+      id: true,
+      startedAt: true,
+      durationSeconds: true,
+      point: true,
+      user: {
+        select: { nickname: true },
+      },
+    },
+    orderBy: { startedAt: 'asc' },
+  });
+}

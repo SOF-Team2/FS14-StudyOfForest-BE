@@ -49,4 +49,24 @@ export async function createFocusSessionController(req, res) {
   }
 };
 
+export async function getFocusSessionsController(req, res) {
+  try {
+    const { studyId } = req.params;
+    const { loginId, password, scope } = req.body;
 
+    const data = await focusService.getFocusStatistics({ loginId, studyId, password, scope });
+
+    res.status(200).json({
+      success: true,
+      message: '오늘의 집중 세션 조회에 성공했습니다.',
+      data,  // { totalSeconds, totalPoint, sessions }
+    })
+
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      errorCode: error.code || 'INTERNAL_SERVER_ERROR',
+    })
+  }
+};
