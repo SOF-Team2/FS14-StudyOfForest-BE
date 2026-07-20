@@ -122,7 +122,7 @@ export const getUserRankings = async () => {
     id: rankedUser.userId,
     nickname: userMap.get(rankedUser.userId),
     point: rankedUser._sum.point,
-  }));   
+  }));
 };
 
 export const getPreviousRankings = async () => {

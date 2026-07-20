@@ -23,22 +23,30 @@ export const getFocusData = async (req, res) => {
   }
 };
 
-export async function updateFocusPointController(req, res) {
+// 집중 세션 생성
+export async function createFocusSessionController(req, res) {
   try {
     const studyId = req.params.studyId;
-    const { password, point } = req.body;
-    const updated = await focusService.updateFocusPoint(studyId, password, point);
-    res.status(200).json({
+    const { loginId, password, startedAt, durationSeconds } = req.body;
+    const created = await focusService.createFocusSession({
+      studyId,
+      loginId,
+      password,
+      startedAt: new Date(startedAt),
+      durationSeconds,
+    });
+    res.status(201).json({
       success: true,
-      message: '오늘의 집중 포인트 업데이트에 성공했습니다.',
-      data: updated,  // { id, point }
+      message: '오늘의 집중 세션 생성에 성공했습니다.',
+      data: created,  // { id, startedAt, durationSeconds, point, userPoint, studyPoint }
     })
   } catch (error) {
     return res.status(error.status || 500).json({
       success: false,
-
       message: error.message || '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
       errorCode: error.code || 'INTERNAL_SERVER_ERROR',
     })
   }
-}
+};
+
+
