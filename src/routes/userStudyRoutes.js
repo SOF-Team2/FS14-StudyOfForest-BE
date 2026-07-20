@@ -3,6 +3,6 @@ import { getMyStudies } from "../controllers/userStudyController.js";
 
 const router = express.Router();
 
-router.get("/me/studies", getMyStudies);
+router.get("/studies", getMyStudies);
 
 export default router;

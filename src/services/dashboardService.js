@@ -26,6 +26,11 @@ const getWeekRange = (date = new Date()) => {
   return { start, end };
 };
 
+const dateKey = (d) => {
+  const dt = new Date(d);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+};
+
 const sumSeconds = (arr) => arr.reduce((sum, s) => sum + s.durationSeconds, 0);
 const toMinutes = (sec) => Math.floor(sec / 60);
 
@@ -92,7 +97,7 @@ const getHabitCard = async (userId) => {
         where: {
           userId,
           habitId: { in: habitIds },
-          recordDate: today,
+          recordDate: { gte: today, lt: new Date(today.getTime() + 86400000) },
           isChecked: true,
         },
         select: { habitId: true },
@@ -141,7 +146,7 @@ const getStreakCard = async (userId) => {
 
   const checkedByDate = new Map();
   records.forEach((r) => {
-    const key = r.recordDate.toISOString().slice(0, 10);
+    const key = dateKey(r.recordDate);
     if (!checkedByDate.has(key)) checkedByDate.set(key, new Set());
     checkedByDate.get(key).add(r.habitId);
   });
@@ -150,16 +155,19 @@ const getStreakCard = async (userId) => {
     where: { studyId: { in: studyIds }, habitStatus: "ACTIVE" },
   });
 
-  const isFullyAchieved = (date) => {
+  const ACHIEVEMENT_THRESHOLD = 0.7;
+
+  const isAchieved = (date) => {
     if (activeHabitCount === 0) return false;
-    const key = date.toISOString().slice(0, 10);
+    const key = dateKey(date);
     const checkedSet = checkedByDate.get(key);
-    return checkedSet ? checkedSet.size >= activeHabitCount : false;
+    const checkedCount = checkedSet ? checkedSet.size : 0;
+    return checkedCount / activeHabitCount >= ACHIEVEMENT_THRESHOLD;
   };
 
   let current = 0;
   const cursor = new Date(today);
-  while (isFullyAchieved(cursor)) {
+  while (isAchieved(cursor)) {
     current += 1;
     cursor.setDate(cursor.getDate() - 1);
   }
@@ -168,7 +176,7 @@ const getStreakCard = async (userId) => {
   let run = 0;
   const scanCursor = new Date(rangeStart);
   while (scanCursor <= today) {
-    if (isFullyAchieved(scanCursor)) {
+    if (isAchieved(scanCursor)) {
       run += 1;
       best = Math.max(best, run);
     } else {
