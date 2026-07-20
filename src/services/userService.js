@@ -1,6 +1,6 @@
 // * as -> export하는 모든 것을 하나의 객체로 묶어서 가져오기
 import * as userRepository from "../repository/userRepository.js";
-import { hashPassword } from "../utils/password.js";
+import {comparePassword, hashPassword,} from "../utils/password.js";
 
 // 영문 소문자와 숫자만 사용, 4자 이상 20자 이하
 const LOGIN_ID_REGEX = /^[a-z0-9]{4,20}$/;
@@ -10,6 +10,7 @@ const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,20}$/;
 
 // 닉네임은 한글, 영문, 숫자만 사용, 2자 이상 10자 이하
 const NICKNAME_REGEX = /^[가-힣a-zA-Z0-9]{2,10}$/;
+
 
 // Controller가 적절한 HTTP 응답을 만들 수 있도록 상태 코드와 에러 코드를 포함한 Error 객체를 생성함
 const createError = (statusCode, code, message) => {
@@ -25,7 +26,7 @@ const normalizeText = (value) => {
   return typeof value === "string" ? value.trim() : "";
 };
 
-// 비밀번호는 사용자가 입력한 값 자체를 유지
+// 비밀번호는 사용자가 입력한 값 자체를 유지함
 const normalizePassword = (value) => {
   return typeof value === "string" ? value : "";
 };
@@ -81,7 +82,26 @@ const validateSignupInput = ({ loginId, password, nickname }) => {
   }
 };
 
-// 회원가입 규칙을 검사하고 정보를 전달 받아 새로운 사용자를 생성함
+// 로그인 입력값이 있는지 검사함
+const validateLoginInput = ({ loginId, password }) => {
+  if (!loginId) {
+    throw createError(
+      400,
+      "LOGIN_ID_REQUIRED",
+      "로그인 아이디를 입력해주세요.",
+    );
+  }
+
+  if (!password) {
+    throw createError(
+      400,
+      "PASSWORD_REQUIRED",
+      "비밀번호를 입력해주세요.",
+    );
+  }
+};
+
+// 회원가입 규칙을 검사하고 새로운 사용자를 생성함
 export const signupUser = async (payload = {}) => {
   const signupData = {
     loginId: normalizeText(payload.loginId),
@@ -122,6 +142,46 @@ export const signupUser = async (payload = {}) => {
   });
 };
 
-export default {
-  signupUser,
+// 로그인 아이디와 비밀번호를 확인하고 사용자 정보를 반환함
+export const loginUser = async (payload = {}) => {
+  const loginData = {
+    loginId: normalizeText(payload.loginId),
+    password: normalizePassword(payload.password),
+  };
+
+  validateLoginInput(loginData);
+
+  const user = await userRepository.findUserByLoginId(
+    loginData.loginId,
+  );
+
+  if (!user) {
+    throw createError(
+      401,
+      "INVALID_LOGIN_CREDENTIALS",
+      "아이디 또는 비밀번호가 올바르지 않습니다.",
+    );
+  }
+
+  const isPasswordMatched = await comparePassword(
+    loginData.password,
+    user.passwordHash,
+  );
+
+  if (!isPasswordMatched) {
+    throw createError(
+      401,
+      "INVALID_LOGIN_CREDENTIALS",
+      "아이디 또는 비밀번호가 올바르지 않습니다.",
+    );
+  }
+
+  return {
+    id: user.id,
+    loginId: user.loginId,
+    nickname: user.nickname,
+    point: user.point,
+  };
 };
+
+export default {signupUser, loginUser,};
