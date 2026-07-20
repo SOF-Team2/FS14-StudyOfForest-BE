@@ -18,6 +18,7 @@ model User {
 
   studyMembers  StudyMember[]
   focusSessions FocusSession[]
+  habitRecords  HabitRecord[]
 
   @@index([point])
 }
@@ -102,10 +103,14 @@ model HabitRecord {
   id         String   @id @default(uuid())
   habitId    String
   habit      Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   recordDate DateTime
   isChecked  Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@index([userId])
 }
 
 enum HabitStatus {
