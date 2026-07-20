@@ -20,3 +20,10 @@ export const removeStudy = async (req, res) => {
     const member = await studyMemberService.removeStudy(userId,studyId)
     res.json(member);
 }
+
+export const countMembers= async (req, res) => {
+    const studyId = req.params.studyId;
+    const count = await studyMemberService.countMembers(studyId)
+    res.json(count);
+}
+

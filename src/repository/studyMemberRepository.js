@@ -32,3 +32,13 @@ export const deleteMember = async (userId, studyId) => {
     })
     return member;
 }
+
+//스터디 인원체크
+export const countByStudyId = async (studyId) => {
+    const count = await prisma.studyMember.count({
+        where : {
+            studyId: studyId,
+        }
+    })
+    return count;
+}

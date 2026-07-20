@@ -15,3 +15,9 @@ export const removeStudy = async (userId,studyId) => {
     const member = await studyMemberRepository.deleteMember(userId,studyId);
     return member;
 }
+
+export const countMembers = async (studyId) => {
+    const count = await studyMemberRepository.countByStudyId(studyId);
+    return count;
+}
+
