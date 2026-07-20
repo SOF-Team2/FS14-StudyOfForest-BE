@@ -12,7 +12,9 @@ async function main() {
   await prisma.habitRecord.deleteMany();
   await prisma.habit.deleteMany();
   await prisma.studyEmoji.deleteMany();
+  await prisma.studyMember.deleteMany();
   await prisma.study.deleteMany();
+  await prisma.user.deleteMany();
 
   const passwordHash = await bcrypt.hash("1234", 10);
 
@@ -31,10 +33,44 @@ async function main() {
           { emoji: "🔥", count: 2 },
           { emoji: "💚", count: 1 },
         ],
+
       },
     },
   });
 
+  
+  const user = await prisma.user.create(
+    {
+      data: {
+        loginId: "testUser1",
+        passwordHash,
+        nickname: "테스트유저1"
+      },
+    },
+  );
+  const user1 = await prisma.user.create(
+    {
+      data: {
+        loginId: "testUser2",
+        passwordHash,
+        nickname: "테스트유저2"
+      },
+    },
+  );
+  const studyMember = await prisma.studyMember.create({
+    data: {
+      userId: user.id,
+      studyId: study.id,
+      role: "HOST",
+    },
+  });
+
+  // const studyMember1 = await prisma.studyMember.create({
+  //   data:{
+  //   userId: user1.id,
+  //     studyId: study.id,
+  //     role: "MEMBER",}
+  // })
   const habit1 = await prisma.habit.create({
     data: {
       studyId: study.id,
