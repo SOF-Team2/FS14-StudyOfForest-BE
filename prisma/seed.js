@@ -153,9 +153,7 @@ async function main() {
       studyId: study3.id,
       durationSeconds: 9300,
       point: 12,
-      createdAt: new Date(
-        new Date(today).setDate(today.getDate() - 2),
-      ),
+      createdAt: new Date(new Date(today).setDate(today.getDate() - 2)),
     },
   });
 
@@ -183,11 +181,13 @@ async function main() {
     data: [
       {
         habitId: habit1.id,
+        userId: me.id,
         recordDate: new Date("2026-07-08"),
         isChecked: false,
       },
       {
         habitId: habit2.id,
+        userId: me.id,
         recordDate: new Date("2026-07-08"),
         isChecked: true,
       },
@@ -195,7 +195,11 @@ async function main() {
   });
 
   console.log("Seed data created");
-  console.log("테스트 유저 (me):", { id: me.id, loginId: me.loginId, nickname: me.nickname });
+  console.log("테스트 유저 (me):", {
+    id: me.id,
+    loginId: me.loginId,
+    nickname: me.nickname,
+  });
 }
 
 main()
