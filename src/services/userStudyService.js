@@ -1,30 +1,34 @@
 import prisma from "../lib/prisma.js";
 
 export const listMyStudies = async (userId) => {
-  const membershops = await prisma.studyMember.findMany({
+  const memberships = await prisma.studyMember.findMany({
     where: { userId },
-    include: { study: true },
+    include: {
+      study: {
+        include: {
+          _count: {
+            select: { studyMembers: true },
+          },
+        },
+      },
+    },
     orderBy: { joinedAt: "desc" },
   });
 
-  return await Promise.all(
-    membershops.map(async (m) => {
-      const memberCount = await prisma.studyMember.count({
-        where: { studyId: m.studyId },
-      });
+  return memberships.map((membership) => {
+    const { study } = membership;
 
-      return {
-        studyId: m.study.id,
-        name: m.study.name,
-        nickname: m.study.nickname,
-        isOwner: m.role === "HOST",
-        memberCount,
-        capacity: m.study.maxMembers,
-        backgroundType: m.study.backgroundType,
-        backgroundValue: m.study.backgroundValue,
-        point: m.study.point,
-        joinedAt: m.joinedAt,
-      };
-    }),
-  );
+    return {
+      studyId: study.id,
+      name: study.name,
+      nickname: study.nickname,
+      isOwner: membership.role === "HOST",
+      memberCount: study._count.studyMembers,
+      capacity: study.maxMembers,
+      backgroundType: study.backgroundType,
+      backgroundValue: study.backgroundValue,
+      point: study.point,
+      joinedAt: membership.joinedAt,
+    };
+  });
 };
