@@ -25,4 +25,6 @@ router.delete("/:studyId", studyController.deleteStudy);
 // 특정 스터디의 응원 이모지 추가 요청을 처리한다.
 router.post("/:studyId/emojis", studyController.addEmoji);
 
+//스터디 모집마감&재개 처리
+router.patch("/:studyId/recruiting", studyController.updateRecruiting);
 export default router;

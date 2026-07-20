@@ -9,12 +9,12 @@ export const findByStudyId = async(studyId) => {
 }
 
 //스터디 들어가기
-export const create = async(userId, studyId) => {
+export const create = async(userId, studyId, role = "MEMBER") => {
     const member = await prisma.studyMember.create({
         data: {
             userId: userId,
             studyId: studyId,
-            role: "MEMBER",
+            role: role,
         }
     })
     return member;

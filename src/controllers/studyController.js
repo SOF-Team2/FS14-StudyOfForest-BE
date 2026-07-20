@@ -87,3 +87,11 @@ export const addEmoji = async (req, res) => {
     return sendError(res, error);
   }
 };
+
+// 모집 마감&재개
+export const updateRecruiting = async (req, res) => {
+   const studyId = req.params.studyId;
+  const isRecruiting = req.body.isRecruiting;
+  const study = await studyService.updateRecruiting(studyId, isRecruiting);
+  res.json(study);
+};

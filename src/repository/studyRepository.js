@@ -202,6 +202,21 @@ export const upsertEmoji = async (studyId, emoji) => {
   });
 };
 
+//모집 버튼 구현 
+
+export const updateRecruiting = async (studyId, isRecruiting) => {
+  const study = await prisma.study.update({
+    where : {
+      id : studyId,
+    },
+    data : {
+      isRecruiting : isRecruiting,
+    }
+  })
+  return study;
+}
+
+
 export default {
   findAll,
   findById,
@@ -209,4 +224,5 @@ export default {
   update,
   remove,
   upsertEmoji,
+  updateRecruiting,
 };

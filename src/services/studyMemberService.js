@@ -1,4 +1,5 @@
 import * as studyMemberRepository from "../repository/studyMemberRepository.js"
+import studyRepository from "../repository/studyRepository.js";
 
 
 export const getMembers = async (studyId) => {
@@ -7,6 +8,13 @@ export const getMembers = async (studyId) => {
 }
 
 export const join = async (userId,studyId) => {
+    const count = await studyMemberRepository.countByStudyId(studyId);
+    const study = await studyRepository.findById(studyId)
+    const maxCount = study.maxMembers;
+    if(count >= maxCount) {
+        throw new Error("정원이 가득 찼습니다.")
+    }
+    
     const member = await studyMemberRepository.create(userId,studyId);
     return member;
 }
