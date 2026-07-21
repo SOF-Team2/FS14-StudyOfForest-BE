@@ -184,4 +184,19 @@ export const loginUser = async (payload = {}) => {
   };
 };
 
-export default {signupUser, loginUser,};
+// 사용자 ID에 해당하는 사용자가 실제로 존재하는지 확인함
+export const getUserById = async (userId) => {
+  const user = await userRepository.findUserById(userId);
+
+  if (!user) {
+    throw createError(
+      404,
+      "USER_NOT_FOUND",
+      "사용자를 찾을 수 없습니다.",
+    );
+  }
+
+  return user;
+};
+
+export default {signupUser, loginUser, getUserById};
