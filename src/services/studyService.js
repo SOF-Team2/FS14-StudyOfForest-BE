@@ -102,10 +102,16 @@ const getListParams = (query = {}) => {
   };
 };
 
-// 스터디 목록을 페이지네이션, 검색, 정렬 조건으로 조회한다.
-export const listStudies = async (query = {}) => {
+// 스터디 목록 조회
+export const listStudies = async (query = {}, userId) => {
   const params = getListParams(query);
-  const { items, totalCount } = await studyRepository.findAll(params);
+  
+  // repository.findAll 호출 시 userId 함께 전달
+  const { items, totalCount } = await studyRepository.findAll({
+    ...params,
+    userId,
+  });
+  
   const totalPages = Math.ceil(totalCount / params.pageSize);
 
   return {
@@ -119,9 +125,15 @@ export const listStudies = async (query = {}) => {
   };
 };
 
-// 단일 스터디 상세 정보를 조회한다.
-export const getStudy = async (studyId) => {
-  const study = await getStudyOrThrow(studyId);
+// 스터디 단건 상세 조회
+export const getStudy = async (studyId, userId) => {
+  // repository.findById 호출 시 userId 함께 전달
+  const study = await studyRepository.findById(studyId, userId);
+
+  if (!study) {
+    throw createError(404, "STUDY_NOT_FOUND", "스터디를 찾을 수 없습니다.");
+  }
+
   return sanitizeStudy(study);
 };
 
