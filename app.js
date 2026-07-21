@@ -6,6 +6,7 @@ import habitRoutes from "./src/routes/habitRoutes.js";
 import rankingRoutes from "./src/routes/rankingRoute.js";
 import userStudyRoutes from "./src/routes/userStudyRoutes.js";
 import dashboardRoutes from "./src/routes/dashboardRoutes.js";
+import favoriteRoutes from "./src/routes/favoriteRoutes.js";
 import userRoute from "./src/routes/userRoute.js";
 
 const app = express();
@@ -19,6 +20,7 @@ app.use("/ranking", rankingRoutes);
 app.use("/api/studies", studyRoutes);
 app.use("/api/users", userStudyRoutes);
 app.use("/api/users", dashboardRoutes);
+app.use("/api/favorites", favoriteRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Hello World" });

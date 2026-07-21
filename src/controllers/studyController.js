@@ -14,22 +14,28 @@ const sendError = (res, error) => {
 };
 
 // 스터디 목록 조회 요청을 처리한다.
-export const getStudies = async (req, res) => {
+export const getStudies = async (req, res, next) => {
   try {
-    return res.status(200).json(await studyService.listStudies(req.query));
+    // 헤더에서 x-user-id 추출 (비로그인 요청일 수 있으므로 선택적)
+    const userId = req.headers["x-user-id"];
+
+    const result = await studyService.listStudies(req.query, userId);
+    return res.status(200).json(result);
   } catch (error) {
-    return sendError(res, error);
+    next(error);
   }
 };
 
-// 단일 스터디 상세 조회 요청을 처리한다.
-export const getStudy = async (req, res) => {
+// 스터디 상세 조회
+export const getStudy = async (req, res, next) => {
   try {
-    return res.status(200).json({
-      data: await studyService.getStudy(req.params.studyId),
-    });
+    const userId = req.headers["x-user-id"];
+    const { studyId } = req.params;
+
+    const result = await studyService.getStudy(studyId, userId);
+    return res.status(200).json(result);
   } catch (error) {
-    return sendError(res, error);
+    next(error);
   }
 };
 

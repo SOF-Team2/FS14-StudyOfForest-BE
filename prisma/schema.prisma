@@ -1,68 +1,87 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
+  provider = "postgresql"
 }
 
 enum StudyMemberRole {
-    HOST
-    MEMBER
+  HOST
+  MEMBER
 }
 
 enum HabitStatus {
-    ACTIVE
-    INACTIVE
+  ACTIVE
+  INACTIVE
 }
 
 model User {
-    id           String @id @default(uuid())
-    loginId      String @unique @db.VarChar(20)
-    passwordHash String
-    nickname     String @unique @db.VarChar(10)
-    point        Int    @default(0)
+  id           String         @id @default(uuid())
+  loginId      String         @unique @db.VarChar(20)
+  passwordHash String
+  nickname     String         @unique @db.VarChar(10)
+  point        Int            @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  studyMembers  StudyMember[]
+  focusSessions FocusSession[]
+  habitRecords  HabitRecord[]
+  
+  // ✅ 추가: 유저가 즐겨찾기한 스터디 목록
+  studyFavorites StudyFavorite[] 
 
-    studyMembers  StudyMember[]
-    focusSessions FocusSession[]
-    habitRecords  HabitRecord[]
-
-    @@index([point])
+  @@index([point])
 }
 
 model Study {
-    id String @id @default(uuid())
+  id              String         @id @default(uuid())
+  // User 인증 전환 완료 전까지만 임시 유지
+  nickname        String         @db.VarChar(30)
+  passwordHash    String
+  name            String         @db.VarChar(50)
+  description     String         @db.VarChar(200)
+  backgroundType  String         @db.VarChar(20)
+  backgroundValue String
+  point           Int            @default(0)
+  maxMembers      Int            @default(3) // HOST 포함 최대 참여 인원
+  isRecruiting    Boolean        @default(true) // true: 모집 중, false: 모집 마감
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
 
-    // User 인증 전환 완료 전까지만 임시 유지
-    nickname     String @db.VarChar(30)
-    passwordHash String
+  habits        Habit[]
+  emojis        StudyEmoji[]
+  studyMembers  StudyMember[]
+  focusSessions FocusSession[]
+  
+  // ✅ 추가: 이 스터디를 즐겨찾기한 내역들
+  studyFavorites StudyFavorite[] 
 
-    name            String @db.VarChar(50)
-    description     String @db.VarChar(200)
-    backgroundType  String @db.VarChar(20)
-    backgroundValue String
+  @@index([createdAt])
+  @@index([point])
+  @@index([deletedAt])
+  @@index([name])
+  @@index([isRecruiting])
+}
 
-    point        Int     @default(0)
-    maxMembers   Int     @default(3) // HOST 포함 최대 참여 인원
-    isRecruiting Boolean @default(true) // true: 모집 중, false: 모집 마감
+// ✅ 신규 모델 추가: 스터디 즐겨찾기
+model StudyFavorite {
+  id        String   @id @default(uuid())
+  userId    String
+  studyId   String
+  createdAt DateTime @default(now())
 
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
-    deletedAt DateTime?
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  study Study @relation(fields: [studyId], references: [id], onDelete: Cascade)
 
-    habits        Habit[]
-    emojis        StudyEmoji[]
-    studyMembers  StudyMember[]
-    focusSessions FocusSession[]
-
-    @@index([createdAt])
-    @@index([point])
-    @@index([deletedAt])
-    @@index([name])
-    @@index([isRecruiting])
+  // 한 유저가 같은 스터디를 여러 번 즐겨찾기 할 수 없도록 고유키 설정
+  @@unique([userId, studyId])
+  
+  // 빠른 조회를 위한 인덱스 설정
+  @@index([userId])
+  @@index([studyId])
 }
 
 model StudyMember {
