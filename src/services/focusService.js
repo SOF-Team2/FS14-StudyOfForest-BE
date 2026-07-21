@@ -27,21 +27,15 @@ export const getFocusStudyData = async (studyId, password) => {
   };
 }
 
-//비밀번호 검증 기능 구현 (함수로 분리)
+//비밀번호 검증
 export async function verifyStudyPassword(studyId, password) {
-
-  //아이디와 패스워드를 받는다. (기존 조회에서는 해시값을 받아오지 않기 때문에 따로 분리해서 작업함)
   const study = await focusRepository.findStudyPasswordById(studyId);
-
-  //스터디가 없을 경우 404
   if (!study) {
     const error = new Error('오늘의 집중 페이지에 접근 할 수 없습니다.');
     error.status = 404;
     error.code = 'STUDY_NOT_FOUND';
     throw error;
   }
-
-  //비밀번호가 없을 경우 400
   if (!password) {
     const error = new Error('비밀번호를 확인해주세요.');
     error.status = 400;
@@ -49,7 +43,6 @@ export async function verifyStudyPassword(studyId, password) {
     throw error;
   }
 
-  //비밀번호가 동일하지 않을 경우 401
   const isMatch = await comparePassword(password, study.passwordHash);
   if (!isMatch) {
     const error = new Error('비밀번호가 올바르지 않습니다.');
@@ -57,23 +50,92 @@ export async function verifyStudyPassword(studyId, password) {
     error.code = 'INVALID_PASSWORD';
     throw error;
   }
-  //스터디가 있고, 패스워드가 동일하면 스터디를 던져준다.
   return study;
 }
 
-export async function updateFocusPoint(studyId, password, point) {
-  // 1) 비밀번호 검증 (같은 파일의 함수 재사용 — 틀리면 여기서 에러가 던져짐)
-  await verifyStudyPassword(studyId, password);
-
-  // 2) 넘어온 포인트 값이 올바른지 확인
-  if (typeof point !== 'number' || point < 0) {
-    const error = new Error('포인트 값이 올바르지 않습니다.');
+// 포인트 검증
+export function verifyDurationSeconds(durationSeconds) {
+  if (!Number.isInteger(durationSeconds) || durationSeconds <= 0 || durationSeconds > 86400) {
+    const error = new Error('올바른 값이 아닙니다.');
     error.status = 400;
-    error.code = 'INVALID_POINT';
+    error.code = 'INVALID_DURATION_SECONDS';
+    throw error;
+  };
+  return durationSeconds;
+}
+
+// 포인트 계산
+export function calculatePoint(durationSeconds) {
+  if (durationSeconds < 600) return 0;
+  const point = 3 + Math.floor(((durationSeconds / 60) - 10) / 10);
+  return point;
+};
+
+
+export async function createFocusSession({ loginId, studyId, password, startedAt, durationSeconds }) {
+  try {
+    //해당 부분은 '스터디'의 비밀번호를 검증하는 함수. 차후 인증 방식이 변경 시 변경해야 함.
+    await verifyStudyPassword(studyId, password);
+
+    const user = await focusRepository.findUserByLoginId(loginId);
+    if (!user) {
+      const error = new Error('사용자를 찾을 수 없습니다.');
+      error.status = 404;
+      error.code = 'USER_NOT_FOUND';
+      throw error;
+    }
+    const { id: userId } = user;
+
+    await verifyDurationSeconds(durationSeconds);
+    const point = calculatePoint(durationSeconds);
+
+    const session = await focusRepository.createFocusSession({
+      userId,
+      studyId,
+      startedAt: new Date(startedAt),
+      durationSeconds,
+      point
+    });
+    const updatedUser = await focusRepository.addUserPoint(userId, point);
+    const updatedStudy = await focusRepository.addStudyPoint(studyId, point);
+
+    return {
+      id: session.id,
+      startedAt: session.startedAt,
+      durationSeconds: session.durationSeconds,
+      point: session.point,
+      userPoint: updatedUser.point,
+      studyPoint: updatedStudy.point,
+    };
+  } catch (error) {
     throw error;
   }
+}
 
-  // 3) 기존 포인트에 더하기
-  const updated = await focusRepository.addFocusPoint(studyId, point);
-  return updated; // { id, point }의 형식으로 반환
+export async function getFocusStatistics({ loginId, studyId, password, scope }) {
+  try {
+    await verifyStudyPassword(studyId, password);
+    const user = await focusRepository.findUserByLoginId(loginId);
+
+    if (!user) {
+      const error = new Error('사용자를 찾을 수 없습니다.');
+      error.status = 404;
+      error.code = 'USER_NOT_FOUND';
+      throw error;
+    }
+    const { id: userId } = user;
+
+    const sessions = await focusRepository.findFocusSessions({
+      userId: scope === 'all' ? undefined : userId,
+      studyId,
+    });
+
+    const totalSeconds = sessions.reduce((sum, session) => sum + session.durationSeconds, 0);
+    //scope가 all이면 팀 전체, me면 이 스터디에서 번 내 점수 (스터디에서만)
+    const totalPoint = sessions.reduce((sum, session) => sum + session.point, 0);
+
+    return { totalSeconds, totalPoint, sessions };
+  } catch (error) {
+    throw error;
+  }
 }
