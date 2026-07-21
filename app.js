@@ -6,11 +6,13 @@ import habitRoutes from "./src/routes/habitRoutes.js";
 import rankingRoutes from "./src/routes/rankingRoute.js";
 import userStudyRoutes from "./src/routes/userStudyRoutes.js";
 import dashboardRoutes from "./src/routes/dashboardRoutes.js";
+import userRoute from "./src/routes/userRoute.js";
 
 const app = express();
 
 app.use(express.json());
 app.use(cors());
+app.use("/users", userRoute);
 app.use("/study", studyRoutes);
 app.use("/", habitRoutes);
 app.use("/ranking", rankingRoutes);
