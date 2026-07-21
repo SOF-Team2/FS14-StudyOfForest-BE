@@ -1,4 +1,3 @@
-// prisma/seed.js
 import "dotenv/config";
 import pkg from "@prisma/client";
 const { PrismaClient } = pkg;
@@ -223,21 +222,34 @@ async function main() {
     },
   });
 
+  // 날짜 유틸: n일 전 자정
+  const daysAgo = (n) => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - n);
+    return d;
+  };
+
+  const habitRecordData = [];
+
+  [0, 1, 2].forEach((n) => {
+    const date = daysAgo(n);
+    habitRecordData.push(
+      { habitId: habit1.id, userId: me.id, recordDate: date, isChecked: true },
+      { habitId: habit2.id, userId: me.id, recordDate: date, isChecked: true },
+    );
+  });
+
+  [10, 11, 12, 13, 14].forEach((n) => {
+    const date = daysAgo(n);
+    habitRecordData.push(
+      { habitId: habit1.id, userId: me.id, recordDate: date, isChecked: true },
+      { habitId: habit2.id, userId: me.id, recordDate: date, isChecked: true },
+    );
+  });
+
   await prisma.habitRecord.createMany({
-    data: [
-      {
-        habitId: habit1.id,
-        userId: me.id,
-        recordDate: new Date("2026-07-08"),
-        isChecked: false,
-      },
-      {
-        habitId: habit2.id,
-        userId: me.id,
-        recordDate: new Date("2026-07-08"),
-        isChecked: true,
-      },
-    ],
+    data: habitRecordData,
   });
 
   console.log("Seed data created");
