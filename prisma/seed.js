@@ -122,6 +122,15 @@ async function main() {
     data: { userId: seoyeon.id, studyId: study3.id, role: "MEMBER" },
   });
 
+  await prisma.studyMember.create({
+    data: {
+      userId: me.id,
+      studyId: study1.id,
+      role: "MEMBER",
+      joinedAt: new Date("2026-07-01T09:00:00.000Z"),
+    },
+  });
+
   const today = new Date();
   today.setHours(9, 0, 0, 0);
 
@@ -177,22 +186,35 @@ async function main() {
     },
   });
 
-  await prisma.habitRecord.createMany({
-    data: [
-      {
-        habitId: habit1.id,
-        userId: me.id,
-        recordDate: new Date("2026-07-08"),
-        isChecked: false,
-      },
-      {
-        habitId: habit2.id,
-        userId: me.id,
-        recordDate: new Date("2026-07-08"),
-        isChecked: true,
-      },
-    ],
-  });
+  // 날짜 유틸: n일 전 자정
+const daysAgo = (n) => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - n);
+  return d;
+};
+
+const habitRecordData = [];
+
+[0, 1, 2].forEach((n) => {
+  const date = daysAgo(n);
+  habitRecordData.push(
+    { habitId: habit1.id, userId: me.id, recordDate: date, isChecked: true },
+    { habitId: habit2.id, userId: me.id, recordDate: date, isChecked: true },
+  );
+});
+
+[10, 11, 12, 13, 14].forEach((n) => {
+  const date = daysAgo(n);
+  habitRecordData.push(
+    { habitId: habit1.id, userId: me.id, recordDate: date, isChecked: true },
+    { habitId: habit2.id, userId: me.id, recordDate: date, isChecked: true },
+  );
+});
+
+await prisma.habitRecord.createMany({
+  data: habitRecordData,
+});
 
   console.log("Seed data created");
   console.log("테스트 유저 (me):", {
