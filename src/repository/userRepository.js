@@ -18,6 +18,21 @@ export const findUserByNickname = async (nickname) => {
   });
 };
 
+// 사용자 ID로 사용자를 조회함
+export const findUserById = async (userId) => {
+  return prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      loginId: true,
+      nickname: true,
+      point: true,
+    },
+  });
+};
+
 // 회원가입 정보를 사용해 새로운 사용자를 생성함
 export const createUser = async ({
   loginId,
