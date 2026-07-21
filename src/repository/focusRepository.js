@@ -24,14 +24,6 @@ export const findFocusStudyById = async (studyId) => {
   });
 };
 
-// 비밀번호 검증에 사용할 비밀번호 해시 값 도출
-export async function findStudyPasswordById(studyId) {
-  return await prisma.study.findFirst({
-    where: { id: studyId, deletedAt: null },
-    select: { id: true, passwordHash: true },
-  });
-}
-
 export async function findUserByLoginId(loginId) {
   return await prisma.user.findUnique({
     where: { loginId },

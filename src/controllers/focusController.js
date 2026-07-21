@@ -4,9 +4,7 @@ import * as focusService from '../services/focusService.js';
 export const getFocusData = async (req, res) => {
   try {
     const { studyId } = req.params;
-    const { password } = req.body;
-
-    const data = await focusService.getFocusStudyData(studyId, password);
+    const data = await focusService.getFocusStudyData(studyId);
 
     return res.status(200).json({
       success: true,
@@ -27,11 +25,10 @@ export const getFocusData = async (req, res) => {
 export async function createFocusSessionController(req, res) {
   try {
     const studyId = req.params.studyId;
-    const { loginId, password, startedAt, durationSeconds } = req.body;
+    const { startedAt, durationSeconds } = req.body;
     const created = await focusService.createFocusSession({
       studyId,
-      loginId,
-      password,
+      userId: req.currentUser.id,
       startedAt: new Date(startedAt),
       durationSeconds,
     });
@@ -52,9 +49,13 @@ export async function createFocusSessionController(req, res) {
 export async function getFocusSessionsController(req, res) {
   try {
     const { studyId } = req.params;
-    const { loginId, password, scope } = req.body;
+    const { scope } = req.body;
 
-    const data = await focusService.getFocusStatistics({ loginId, studyId, password, scope });
+    const data = await focusService.getFocusStatistics({
+      userId: req.currentUser.id,
+      studyId,
+      scope,
+    });
 
     res.status(200).json({
       success: true,

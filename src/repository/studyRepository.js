@@ -24,6 +24,17 @@ const getStudyInclude = (userId) => ({
         where: { userId },
       }
     : false,
+  studyMembers: userId
+    ? {
+        where: {
+          userId,
+          role: "HOST",
+        },
+        select: {
+          id: true,
+        },
+      }
+    : false,
 });
 
 const toIsoString = (date) => (date ? date.toISOString() : null);
@@ -45,6 +56,8 @@ const toStudyDto = (study) => {
   // ✅ 2. 가져온 studyFavorites 배열을 바탕으로 isFavorite(boolean) 계산
   const isFavorite =
     Array.isArray(study.studyFavorites) && study.studyFavorites.length > 0;
+  const isOwner =
+    Array.isArray(study.studyMembers) && study.studyMembers.length > 0;
 
   return {
     id: study.id,
@@ -53,11 +66,11 @@ const toStudyDto = (study) => {
     description: study.description,
     backgroundType: study.backgroundType,
     backgroundValue: study.backgroundValue,
-    passwordHash: study.passwordHash,
     point: study.point,
     points: study.point,
     isRecruiting: study.isRecruiting,
     isFavorite, // ✅ DTO 응답 필드에 추가
+    isOwner,
     createdAt: toIsoString(study.createdAt),
     updatedAt: toIsoString(study.updatedAt),
     deletedAt: toIsoString(study.deletedAt),
@@ -153,8 +166,13 @@ export const create = async (study, userId) => {
       description: study.description,
       backgroundType: study.backgroundType,
       backgroundValue: study.backgroundValue,
-      passwordHash: study.passwordHash,
       point: 0,
+      studyMembers: {
+        create: {
+          userId,
+          role: "HOST",
+        },
+      },
     },
     include: getStudyInclude(userId),
   });

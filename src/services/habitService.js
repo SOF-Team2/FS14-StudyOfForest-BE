@@ -65,9 +65,11 @@ export const createHabit = async (studyId, data) => {
 export const updateHabit = async (studyId, habits) => {
   const operations = habits.map((habit) => {
     if (habit.id) {
-      return prisma.habit.update({
+      return prisma.habit.updateMany({
         where: {
           id: habit.id,
+          studyId,
+          habitStatus: "ACTIVE",
         },
         data: {
           name: habit.name
@@ -96,14 +98,15 @@ export const updateHabit = async (studyId, habits) => {
   });
 };
 
-export const deleteHabit = async (habitId) => {
-  if (!habitId) {
+export const deleteHabit = async (studyId, habitId) => {
+  if (!studyId || !habitId) {
     throwError(400, "habitId가 필요합니다.");
   }
 
-  const habit = await prisma.habit.findUnique({
+  const habit = await prisma.habit.findFirst({
     where: {
-      id: habitId
+      id: habitId,
+      studyId,
     },
   });
 
@@ -122,14 +125,15 @@ export const deleteHabit = async (habitId) => {
   });
 };
 
-export const toggleHabitRecord = async (habitId) => {
-  if (!habitId) {
+export const toggleHabitRecord = async (studyId, habitId, userId) => {
+  if (!studyId || !habitId || !userId) {
     throwError(400, "habitId가 필요합니다.");
   }
 
-  const habit = await prisma.habit.findUnique({
+  const habit = await prisma.habit.findFirst({
     where: {
       id: habitId,
+      studyId,
     },
   });
 
@@ -146,6 +150,7 @@ export const toggleHabitRecord = async (habitId) => {
   const habitRecord = await prisma.habitRecord.findFirst({
     where: {
       habitId,
+      userId,
       recordDate: {
         gte: today,
         lt: tomorrow,
@@ -157,6 +162,7 @@ export const toggleHabitRecord = async (habitId) => {
     return prisma.habitRecord.create({
       data: {
         habitId,
+        userId,
         recordDate: today,
         isChecked: true,
       },
