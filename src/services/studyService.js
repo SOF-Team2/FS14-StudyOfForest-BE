@@ -1,4 +1,5 @@
 import * as studyRepository from "../repository/studyRepository.js";
+import * as studyMemberRepository from "../repository/studyMemberRepository.js";
 import { comparePassword, hashPassword } from "../utils/password.js";
 
 const DEFAULT_PAGE = 1;
@@ -36,6 +37,8 @@ const normalizeCreatePayload = (payload = {}) => ({
   backgroundValue: normalizeString(payload.backgroundValue ?? payload.background),
   password: normalizeString(payload.password),
   passwordConfirmation: normalizeString(payload.passwordConfirmation ?? payload.passwordConfirm),
+  //유저 아이디 추가(host)
+  userId: payload.userId, 
 });
 
 // API 응답에 비밀번호 관련 값이 포함되지 않도록 제거한다.
@@ -152,7 +155,8 @@ export const createStudy = async (payload = {}) => {
     backgroundValue: normalizedPayload.backgroundValue,
     passwordHash,
   });
-
+  // 생성시 host 권한 부여
+  await studyMemberRepository.create(normalizedPayload.userId, study.id, "HOST")
   return sanitizeStudy(study);
 };
 
@@ -242,6 +246,12 @@ export const addEmoji = async (studyId, payload = {}) => {
     count: updatedEmoji.count,
   };
 };
+
+//모집 마감&재개 
+export const updateRecruiting = async (studyId, isRecruiting) => {
+  const study = await studyRepository.updateRecruiting(studyId, isRecruiting);
+  return study;
+}
 
 export default {
   listStudies,

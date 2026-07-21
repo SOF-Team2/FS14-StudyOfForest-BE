@@ -39,7 +39,44 @@ model User {
   @@index([point])
 }
 
+enum StudyMemberRole {
+  HOST
+  MEMBER
+}
+
+model User {
+  id           String @id @default(uuid())
+  loginId      String @unique @db.VarChar(20)
+  passwordHash String
+  nickname     String @unique @db.VarChar(10)
+  point        Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studyMembers StudyMember[]
+  // ↓ habitRecord 모델에 userId 컬럼이 없으므로 habitRecords 관계 임시 제거
+  // habitRecords HabitRecord[]
+
+  @@index([point])
+}
+
 model Study {
+  id          String @id @default(uuid())
+  nickname    String @db.VarChar(30)
+  name        String @db.VarChar(50)
+  description String @db.VarChar(200)
+
+  backgroundType  String @db.VarChar(20)
+  backgroundValue String
+
+  passwordHash String
+  point        Int    @default(0)
+
+  // HOST 포함 최대 참여 인원
+  maxMembers Int @default(3)
+
+  // true: 모집 중, false: 모집 마감
     id String @id @default(uuid())
 
     // User 인증 전환 완료 전까지만 임시 유지
