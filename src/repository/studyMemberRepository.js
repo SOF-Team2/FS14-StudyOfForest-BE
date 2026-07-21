@@ -1,0 +1,56 @@
+import prisma from "../lib/prisma.js"
+
+//스터디 참여자 조회
+export const findByStudyId = async(studyId) => {
+    const members = await prisma.studyMember.findMany({
+        where: {studyId : studyId},
+    })
+    return members
+}
+
+//스터디 들어가기
+export const create = async(userId, studyId, role = "MEMBER") => {
+    const member = await prisma.studyMember.create({
+        data: {
+            userId: userId,
+            studyId: studyId,
+            role: role,
+        }
+    })
+    return member;
+}
+
+//스터디 나가기
+export const deleteMember = async (userId, studyId) => {
+    const member = await prisma.studyMember.delete({
+        where: {
+            userId_studyId: {
+            userId: userId,
+            studyId: studyId,
+        }
+    },
+    })
+    return member;
+}
+
+//스터디 인원체크
+export const countByStudyId = async (studyId) => {
+    const count = await prisma.studyMember.count({
+        where : {
+            studyId: studyId,
+        }
+    })
+    return count;
+}
+
+//HOST 권한 확인
+export const findMember = async(userId,studyId) => {
+    const member = await prisma.studyMember.findFirst({
+        where: {
+
+            userId: userId,
+            studyId: studyId,
+    },
+    })
+    return member;
+}

@@ -14,11 +14,32 @@ async function main() {
   await prisma.habitRecord.deleteMany();
   await prisma.habit.deleteMany();
   await prisma.studyEmoji.deleteMany();
+  await prisma.focusSession.deleteMany();
+  await prisma.studyMember.deleteMany();
   await prisma.study.deleteMany();
   await prisma.user.deleteMany();
 
   const passwordHash = await bcrypt.hash("1234", 10);
 
+  const user = await prisma.user.create({
+    data: {
+      loginId: "y2h023451",
+      passwordHash,
+      nickname: "수정",
+      point: 9,   // 아래 세션들의 point 합계
+    },
+  });
+
+  const user1 = await prisma.user.create({
+    data: {
+      loginId: "y2h0234512",
+      passwordHash,
+      nickname: "수정2",
+      point: 0,
+    },
+  });
+
+  const study = await prisma.study.create({
   const me = await prisma.user.create({
     data: {
       loginId: "test1",
@@ -62,10 +83,91 @@ async function main() {
           { emoji: "🔥", count: 2 },
           { emoji: "💚", count: 1 },
         ],
+
       },
     },
   });
 
+  
+  const user = await prisma.user.create(
+    {
+      data: {
+        loginId: "testUser1",
+        passwordHash,
+        nickname: "테스트유저1"
+      },
+      point: 9,
+    },
+  );
+  const user1 = await prisma.user.create(
+    {
+      data: {
+        loginId: "testUser2",
+        passwordHash,
+        nickname: "테스트유저2"
+      },
+    },
+  );
+  const studyMember = await prisma.studyMember.create({
+    data: {
+      userId: user.id,
+      studyId: study.id,
+      role: "HOST",
+    },
+  });
+
+  await prisma.studyMember.create({
+    data: {
+      userId: user.id,
+      studyId: study.id,
+      role: "HOST",
+    },
+  });
+
+
+  await prisma.studyMember.create({
+    data: {
+      userId: user1.id,
+      studyId: study.id,
+      role: "MEMBER",
+    },
+  });
+
+  const focusSession = await prisma.focusSession.createMany({
+    data: [
+      {
+        userId: user.id,
+        studyId: study.id,
+        startedAt: new Date("2026-07-19T15:00:00"),
+        createdAt: new Date("2026-07-19T15:40:00"),
+        durationSeconds: 1800,
+        point: 5,
+      },
+      {
+        userId: user.id,
+        studyId: study.id,
+        startedAt: new Date("2026-07-20T10:00:00"),
+        createdAt: new Date("2026-07-20T10:20:00"),
+        durationSeconds: 1200,
+        point: 4,
+      },
+      {
+        userId: user.id,
+        studyId: study.id,
+        startedAt: new Date("2026-07-20T14:30:00"),
+        createdAt: new Date("2026-07-20T14:35:00"),
+        durationSeconds: 300,
+        point: 0,
+      },
+      {
+        userId: user1.id,
+        studyId: study.id,
+        startedAt: new Date("2026-07-20T14:30:00"),
+        createdAt: new Date("2026-07-20T14:35:00"),
+        durationSeconds: 300,
+        point: 0,
+      },
+    ],
   const study2 = await prisma.study.create({
     data: {
       nickname: "민수",

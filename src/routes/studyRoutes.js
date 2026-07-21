@@ -2,6 +2,7 @@ import express from "express";
 import * as studyController from "../controllers/studyController.js";
 import habitRoutes from './habitRoutes.js';
 import focusRoute from "./focusRoute.js";
+import studyMemberRoutes from "./studyMemberRoutes.js"
 
 const router = express.Router();
 
@@ -13,6 +14,8 @@ router.post("/", studyController.createStudy);
 // 스터디 하위 집중 기능 라우터를 연결한다.
 router.use("/:studyId/focus", focusRoute);
 router.use("/:studyId/habit", habitRoutes);
+router.use("/:studyId/members", studyMemberRoutes);
+
 // 특정 스터디의 상세 조회, 수정, 삭제 요청을 처리한다.
 router.get("/:studyId", studyController.getStudy);
 router.post("/:studyId/password/verify", studyController.verifyStudyPassword);
@@ -22,4 +25,6 @@ router.delete("/:studyId", studyController.deleteStudy);
 // 특정 스터디의 응원 이모지 추가 요청을 처리한다.
 router.post("/:studyId/emojis", studyController.addEmoji);
 
+//스터디 모집마감&재개 처리
+router.patch("/:studyId/recruiting", studyController.updateRecruiting);
 export default router;
