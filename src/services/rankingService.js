@@ -27,14 +27,49 @@ const getWeekRange = () => {
   };
 };
 
+// 동점자 처리 (포인트가 같으면 같은 순위 부여, 다음 순위는 건너뛰기)
+const addRank = (rankings) => {
+  let previousItemPoint = null;
+  let currentRank = 0;
+
+  return rankings.map((item, index) => {
+    if (item.point !== previousItemPoint) {
+      currentRank = index + 1;
+    }
+
+    previousItemPoint = item.point;
+
+    return {
+      ...item,
+      rank: currentRank,
+    };
+  });
+};
+
 // 이번 주 획득 포인트 기준으로 스터디 랭킹 조회
 export const getStudyRankings = async () => {
   const { weekStart, nextWeekStart } = getWeekRange();
 
-  // 이번 주 focusSession을 studyId별로 묶어 포인트 합산
+  // 삭제되지 않은 스터디 조회
+  const activeStudies = await prisma.study.findMany({
+    where: {
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  const activeStudyIds = activeStudies.map((study) => study.id);
+
+  // 이번 주 focusSession을 활성 스터디별로 묶어 포인트 합산
   const rankingGroups = await prisma.focusSession.groupBy({
     by: ["studyId"],
     where: {
+      studyId: {
+        in: activeStudyIds,
+      },
       createdAt: {
         gte: weekStart,
         lt: nextWeekStart,
@@ -50,30 +85,19 @@ export const getStudyRankings = async () => {
     },
   });
 
-  // 랭킹에 포함된 스터디의 이름 조회
-  const studies = await prisma.study.findMany({
-    where: {
-      id: {
-        in: rankingGroups.map((rankingGroup) => rankingGroup.studyId),
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-    },
-  });
-
   // 스터디 id와 name 연결하기
   const studyMap = new Map(
-    studies.map((study) => [study.id, study.name])
+    activeStudies.map((study) => [study.id, study.name])
   );
 
-  return rankingGroups.map((rankedStudy, index) => ({
-    rank: index + 1,
+  // 집계된 포인트와 스터디 이름을 랭킹 응답 형태로 변환
+  const studyRankings = rankingGroups.map((rankedStudy) => ({
     id: rankedStudy.studyId,
     name: studyMap.get(rankedStudy.studyId),
     point: rankedStudy._sum.point,
   }));
+
+  return addRank(studyRankings);
 };
 
 // 이번 주 획득 포인트 기준으로 유저 랭킹 조회
@@ -117,21 +141,40 @@ export const getUserRankings = async () => {
     users.map((user) => [user.id, user.nickname])
   );
 
-  return rankingGroups.map((rankedUser, index) => ({
-    rank: index + 1,
+  // 집계된 포인트와 유저 닉네임을 랭킹 응답 형태로 변환
+  const userRankings = rankingGroups.map((rankedUser) => ({
     id: rankedUser.userId,
     nickname: userMap.get(rankedUser.userId),
     point: rankedUser._sum.point,
   }));
+
+  return addRank(userRankings);
 };
 
+// 지난주 스터디 및 유저 공동 1위 조회
 export const getPreviousRankings = async () => {
   const { previousWeekStart, weekStart } = getWeekRange();
 
-  // 지난주 focusSession을 studyId별로 묶어 포인트 합산
+  // 삭제되지 않은 스터디 조회
+  const activeStudies = await prisma.study.findMany({
+    where: {
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  const activeStudyIds = activeStudies.map((study) => study.id);
+
+  // 지난주 focusSession을 활성 스터디별로 묶어 포인트 합산
   const studyRankingGroups = await prisma.focusSession.groupBy({
     by: ["studyId"],
     where: {
+      studyId: {
+        in: activeStudyIds,
+      },
       createdAt: {
         gte: previousWeekStart,
         lt: weekStart,
@@ -166,25 +209,32 @@ export const getPreviousRankings = async () => {
     },
   });
 
-  // 포인트 합계가 가장 높은 스터디와 유저 조회
-  const topStudy = studyRankingGroups[0];
-  const topUser = userRankingGroups[0];
+  // 스터디와 유저의 지난주 최고 포인트 확인
+  const topStudyPoint = studyRankingGroups[0]?._sum.point;
+  const topUserPoint = userRankingGroups[0]?._sum.point;
 
-  // 1위 스터디 이름 조회
-  const study = await prisma.study.findUnique({
-    where: {
-      id: topStudy.studyId,
-    },
-    select: {
-      id: true,
-      name: true,
-    },
-  });
+  // 최고 포인트와 같은 공동 1위 스터디와 유저 찾기
+  // 지난주 기록이 없으면 빈 배열로 설정
+  const topStudyGroups = 
+    topStudyPoint === undefined 
+    ? [] 
+    : studyRankingGroups.filter(
+    (study) => study._sum.point === topStudyPoint
+  );
 
-  // 1위 유저 닉네임 조회
-  const user = await prisma.user.findUnique({
+  const topUserGroups = 
+    topUserPoint === undefined
+    ? []
+    : userRankingGroups.filter(
+    (user) => user._sum.point === topUserPoint
+  );
+
+  // 공동 1위 유저 정보 조회
+  const users = await prisma.user.findMany({
     where: {
-      id: topUser.userId,
+      id: {
+        in: topUserGroups.map((user) => user.userId),
+      },
     },
     select: {
       id: true,
@@ -192,16 +242,25 @@ export const getPreviousRankings = async () => {
     },
   });
 
+  // id를 기준으로 스터디 이름과 유저 닉네임 찾을 수 있도록 Map 생성
+  const studyMap = new Map(
+    activeStudies.map((study) => [study.id, study.name])
+  );
+  const userMap = new Map(
+    users.map((user) => [user.id, user.nickname])
+  );
+
+  // 공동 1위 스터디와 유저 정보 반환
   return {
-    study: {
-      id: study.id,
-      name: study.name,
-      point: topStudy._sum.point,
-    },
-    user: {
-      id: user.id,
-      nickname: user.nickname,
-      point: topUser._sum.point,
-    },
+    studies: topStudyGroups.map((study) => ({
+      id: study.studyId,
+      name: studyMap.get(study.studyId),
+      point: study._sum.point,
+    })),
+    users: topUserGroups.map((user) => ({
+      id: user.userId,
+      nickname: userMap.get(user.userId),
+      point: user._sum.point,
+    })),
   };
 };
