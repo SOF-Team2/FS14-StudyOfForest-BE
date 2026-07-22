@@ -1,12 +1,7 @@
-import { comparePassword } from '../utils/password.js';
 import * as focusRepository from '../repository/focusRepository.js';
 
 // 스터디 데이터 조회
-export const getFocusStudyData = async (studyId, password) => {
-
-  //비밀번호 검증
-  await verifyStudyPassword(studyId, password);
-
+export const getFocusStudyData = async (studyId) => {
   const study = await focusRepository.findFocusStudyById(studyId);
 
   if (!study) {
@@ -25,32 +20,6 @@ export const getFocusStudyData = async (studyId, password) => {
       count: emojiItem.count,
     })),
   };
-}
-
-//비밀번호 검증
-export async function verifyStudyPassword(studyId, password) {
-  const study = await focusRepository.findStudyPasswordById(studyId);
-  if (!study) {
-    const error = new Error('오늘의 집중 페이지에 접근 할 수 없습니다.');
-    error.status = 404;
-    error.code = 'STUDY_NOT_FOUND';
-    throw error;
-  }
-  if (!password) {
-    const error = new Error('비밀번호를 확인해주세요.');
-    error.status = 400;
-    error.code = 'MISSING_PASSWORD';
-    throw error;
-  }
-
-  const isMatch = await comparePassword(password, study.passwordHash);
-  if (!isMatch) {
-    const error = new Error('비밀번호가 올바르지 않습니다.');
-    error.status = 401;
-    error.code = 'INVALID_PASSWORD';
-    throw error;
-  }
-  return study;
 }
 
 // 포인트 검증
@@ -72,20 +41,8 @@ export function calculatePoint(durationSeconds) {
 };
 
 
-export async function createFocusSession({ loginId, studyId, password, startedAt, durationSeconds }) {
+export async function createFocusSession({ userId, studyId, startedAt, durationSeconds }) {
   try {
-    //해당 부분은 '스터디'의 비밀번호를 검증하는 함수. 차후 인증 방식이 변경 시 변경해야 함.
-    await verifyStudyPassword(studyId, password);
-
-    const user = await focusRepository.findUserByLoginId(loginId);
-    if (!user) {
-      const error = new Error('사용자를 찾을 수 없습니다.');
-      error.status = 404;
-      error.code = 'USER_NOT_FOUND';
-      throw error;
-    }
-    const { id: userId } = user;
-
     await verifyDurationSeconds(durationSeconds);
     const point = calculatePoint(durationSeconds);
 
@@ -112,19 +69,8 @@ export async function createFocusSession({ loginId, studyId, password, startedAt
   }
 }
 
-export async function getFocusStatistics({ loginId, studyId, password, scope }) {
+export async function getFocusStatistics({ userId, studyId, scope }) {
   try {
-    await verifyStudyPassword(studyId, password);
-    const user = await focusRepository.findUserByLoginId(loginId);
-
-    if (!user) {
-      const error = new Error('사용자를 찾을 수 없습니다.');
-      error.status = 404;
-      error.code = 'USER_NOT_FOUND';
-      throw error;
-    }
-    const { id: userId } = user;
-
     const sessions = await focusRepository.findFocusSessions({
       userId: scope === 'all' ? undefined : userId,
       studyId,

@@ -45,9 +45,9 @@ export const updateHabit = async (req, res) => {
 
 export const deleteHabit = async (req, res) => {
   try {
-    const { habitId } = req.params;
+    const { studyId, habitId } = req.params;
 
-    const result = await habitService.deleteHabit(habitId);
+    const result = await habitService.deleteHabit(studyId, habitId);
 
     res.status(200).send(result);
   } catch (error) {
@@ -59,9 +59,13 @@ export const deleteHabit = async (req, res) => {
 
 export const toggleHabitRecord = async (req, res) => {
    try {
-    const { habitId } = req.params;
+    const { studyId, habitId } = req.params;
 
-    const result = await habitService.toggleHabitRecord(habitId);
+    const result = await habitService.toggleHabitRecord(
+      studyId,
+      habitId,
+      req.currentUser.id,
+    );
 
     res.status(200).send(result);
   } catch (error) {

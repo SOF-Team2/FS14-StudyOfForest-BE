@@ -51,12 +51,11 @@ async function main() {
   // 3. 스터디 생성
   const study1 = await prisma.study.create({
     data: {
-      nickname: "현지",
+      nickname: me.nickname,
       name: "React 스터디",
       description: "React를 함께 공부하는 스터디입니다.",
       backgroundType: "COLOR",
       backgroundValue: "#DDEFE3",
-      passwordHash,
       point: 9,
       maxMembers: 6,
       emojis: {
@@ -71,12 +70,11 @@ async function main() {
 
   const study2 = await prisma.study.create({
     data: {
-      nickname: "민수",
+      nickname: minsu.nickname,
       name: "프론트엔드 실전반",
       description: "프론트엔드 실전 문제풀이 스터디입니다.",
       backgroundType: "COLOR",
       backgroundValue: "blue",
-      passwordHash,
       point: 18,
       maxMembers: 6,
     },
@@ -84,12 +82,11 @@ async function main() {
 
   const study3 = await prisma.study.create({
     data: {
-      nickname: "이서윤",
+      nickname: me.nickname,
       name: "CS 면접 준비",
       description: "CS 전공 지식 및 면접 준비 스터디입니다.",
       backgroundType: "COLOR",
       backgroundValue: "#E1EDDE",
-      passwordHash,
       point: 27,
       maxMembers: 8,
     },

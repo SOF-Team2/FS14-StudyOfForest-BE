@@ -39,4 +39,12 @@ export const login = async (req, res) => {
   }
 };
 
-export default {signup, login,};
+// 검증된 로그인 사용자 정보를 반환함
+export const getMe = async (req, res) => {
+  return res.status(200).json({
+    success: true,
+    data: req.currentUser,
+  });
+};
+
+export default { signup, login, getMe };

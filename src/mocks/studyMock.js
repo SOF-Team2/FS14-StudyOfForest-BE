@@ -1,6 +1,4 @@
 // mock/studies.js
-import { hashPassword } from '../utils/password.js';
-
 export const createMockStudies = async () => {
   return [
     {
@@ -8,7 +6,6 @@ export const createMockStudies = async () => {
       name: 'React 스터디',
       description: 'React를 함께 공부하는 스터디입니다.',
       background: 'green',
-      password_hash: await hashPassword('1234'),
       point: 0,
       created_at: new Date(),
       updated_at: new Date(),
@@ -19,7 +16,6 @@ export const createMockStudies = async () => {
       name: 'Node.js 스터디',
       description: 'Node.js와 Express를 공부합니다.',
       background: 'blue',
-      password_hash: await hashPassword('5678'),
       point: 10,
       created_at: new Date(),
       updated_at: new Date(),
@@ -31,7 +27,6 @@ export const createMockStudies = async () => {
       name: '아침 알고리즘 스터디',
       description: '매일 아침 알고리즘 문제를 풀고 기록하는 스터디입니다.',
       background: 'green',
-      password_hash: await hashPassword('1234'),
       point: 42,
       created_at: new Date('2026-07-01T09:00:00.000Z'),
       updated_at: new Date('2026-07-01T09:00:00.000Z'),
@@ -49,7 +44,6 @@ export const createMockStudies = async () => {
       name: 'CS 면접 준비',
       description: '운영체제, 네트워크, 데이터베이스 면접 질문을 함께 정리합니다.',
       background: 'yellow',
-      password_hash: await hashPassword('1234'),
       point: 27,
       created_at: new Date('2026-07-03T18:10:00.000Z'),
       updated_at: new Date('2026-07-03T18:10:00.000Z'),
@@ -66,7 +60,6 @@ export const createMockStudies = async () => {
       name: '프론트엔드 실전반',
       description: 'React와 CSS 구현력을 높이기 위한 실전 스터디입니다.',
       background: 'blue',
-      password_hash: await hashPassword('1234'),
       point: 18,
       created_at: new Date('2026-07-04T12:30:00.000Z'),
       updated_at: new Date('2026-07-04T12:30:00.000Z'),
