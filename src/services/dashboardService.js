@@ -87,7 +87,9 @@ const getFocusCard = async (userId) => {
 
 // 완료한 습관 카드 (실제 DB)
 const getHabitCard = async (userId) => {
-  const today = startOfToday();
+  const today = startOfDay();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
   const memberships = await prisma.studyMember.findMany({
     where: { userId },
@@ -99,7 +101,7 @@ const getHabitCard = async (userId) => {
     where: {
       studyId: { in: studyIds },
       habitStatus: "ACTIVE",
-      startDate: { lte: today },
+      startDate: { lt: tomorrow },
       OR: [{ endDate: null }, { endDate: { gte: today } }],
     },
     select: { id: true },
