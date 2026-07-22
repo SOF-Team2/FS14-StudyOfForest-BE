@@ -31,6 +31,7 @@ model User {
 
   // ✅ 추가: 유저가 즐겨찾기한 스터디 목록
   studyFavorites StudyFavorite[]
+  userGoal       UserGoal?
 
   @@index([point])
 }
@@ -165,4 +166,15 @@ model FocusSession {
   @@index([createdAt])
   @@index([userId])
   @@index([studyId])
+}
+
+// ✅ 신규 모델 추가: 대시보드 - 이번주 목표 (유저당 1개)
+model UserGoal {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  targetFocusHours Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
