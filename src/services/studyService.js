@@ -160,7 +160,7 @@ export const createStudy = async (payload = {}) => {
   return sanitizeStudy(study);
 };
 
-// 전달된 필드만 골라 스터디를 수정하고, 비밀번호 변경 시에만 현재 비밀번호를 검증한다.
+/**전달된 필드만 골라 스터디를 수정하고, 비밀번호 변경 시에만 현재 비밀번호를 검증한다. */
 export const updateStudy = async (studyId, payload = {}) => {
   const study = await getStudyOrThrow(studyId);
 
