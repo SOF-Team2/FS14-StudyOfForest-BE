@@ -1,6 +1,4 @@
 import * as studyRepository from "../repository/studyRepository.js";
-import * as studyMemberRepository from "../repository/studyMemberRepository.js";
-import { comparePassword, hashPassword } from "../utils/password.js";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 6;
@@ -30,22 +28,13 @@ const normalizePositiveInteger = (value, fallback) => {
 
 // 생성 API에서 허용하는 대체 필드명을 내부 표준 필드명으로 정리한다.
 const normalizeCreatePayload = (payload = {}) => ({
-  nickname: normalizeString(payload.nickname),
   name: normalizeString(payload.name ?? payload.studyName),
   description: normalizeString(payload.description ?? payload.intro ?? payload.introduction),
   backgroundType: normalizeString(payload.backgroundType) || "color",
   backgroundValue: normalizeString(payload.backgroundValue ?? payload.background),
-  password: normalizeString(payload.password),
-  passwordConfirmation: normalizeString(payload.passwordConfirmation ?? payload.passwordConfirm),
-  //유저 아이디 추가(host)
-  userId: payload.userId, 
 });
 
-// API 응답에 비밀번호 관련 값이 포함되지 않도록 제거한다.
-const sanitizeStudy = (study) => {
-  const { passwordHash, password, ...safeStudy } = study;
-  return safeStudy;
-};
+const sanitizeStudy = (study) => study;
 
 // 필수 입력값 누락 여부를 확인한다.
 const validateRequiredFields = (fields) => {
@@ -71,19 +60,6 @@ const getStudyOrThrow = async (studyId) => {
   return study;
 };
 
-// 수정/삭제 요청에서 입력 비밀번호와 저장된 비밀번호 hash를 비교한다.
-const verifyPassword = async (study, password) => {
-  if (!normalizeString(password)) {
-    throw createError(400, "PASSWORD_REQUIRED", "비밀번호를 입력해주세요.");
-  }
-
-  const isValidPassword = await comparePassword(password, study.passwordHash);
-
-  if (!isValidPassword) {
-    throw createError(403, "INVALID_PASSWORD", "비밀번호가 일치하지 않습니다.");
-  }
-};
-
 // 목록 조회 query를 pagination, search, sort 파라미터로 정리한다.
 const getListParams = (query = {}) => {
   const page = normalizePositiveInteger(query.page, DEFAULT_PAGE);
@@ -102,10 +78,16 @@ const getListParams = (query = {}) => {
   };
 };
 
-// 스터디 목록을 페이지네이션, 검색, 정렬 조건으로 조회한다.
-export const listStudies = async (query = {}) => {
+// 스터디 목록 조회
+export const listStudies = async (query = {}, userId) => {
   const params = getListParams(query);
-  const { items, totalCount } = await studyRepository.findAll(params);
+  
+  // repository.findAll 호출 시 userId 함께 전달
+  const { items, totalCount } = await studyRepository.findAll({
+    ...params,
+    userId,
+  });
+  
   const totalPages = Math.ceil(totalCount / params.pageSize);
 
   return {
@@ -119,111 +101,70 @@ export const listStudies = async (query = {}) => {
   };
 };
 
-// 단일 스터디 상세 정보를 조회한다.
-export const getStudy = async (studyId) => {
-  const study = await getStudyOrThrow(studyId);
-  return sanitizeStudy(study);
-};
+// 스터디 단건 상세 조회
+export const getStudy = async (studyId, userId) => {
+  // repository.findById 호출 시 userId 함께 전달
+  const study = await studyRepository.findById(studyId, userId);
 
-// 필수값과 비밀번호 확인을 검증한 뒤 스터디를 생성한다.
-export const createStudy = async (payload = {}) => {
-  const normalizedPayload = normalizeCreatePayload(payload);
-
-  validateRequiredFields({
-    nickname: normalizedPayload.nickname,
-    name: normalizedPayload.name,
-    description: normalizedPayload.description,
-    backgroundValue: normalizedPayload.backgroundValue,
-    password: normalizedPayload.password,
-    passwordConfirmation: normalizedPayload.passwordConfirmation,
-  });
-
-  if (normalizedPayload.password !== normalizedPayload.passwordConfirmation) {
-    throw createError(
-      400,
-      "PASSWORD_CONFIRMATION_MISMATCH",
-      "비밀번호와 비밀번호 확인이 일치하지 않습니다.",
-    );
+  if (!study) {
+    throw createError(404, "STUDY_NOT_FOUND", "스터디를 찾을 수 없습니다.");
   }
 
-  const passwordHash = await hashPassword(normalizedPayload.password);
-  const study = await studyRepository.create({
-    nickname: normalizedPayload.nickname,
-    name: normalizedPayload.name,
-    description: normalizedPayload.description,
-    backgroundType: normalizedPayload.backgroundType,
-    backgroundValue: normalizedPayload.backgroundValue,
-    passwordHash,
-  });
-  // 생성시 host 권한 부여
-  await studyMemberRepository.create(normalizedPayload.userId, study.id, "HOST")
   return sanitizeStudy(study);
 };
 
-/**전달된 필드만 골라 스터디를 수정하고, 비밀번호 변경 시에만 현재 비밀번호를 검증한다. */
-export const updateStudy = async (studyId, payload = {}) => {
-  const study = await getStudyOrThrow(studyId);
+// 로그인 사용자의 닉네임으로 스터디를 생성하고 HOST 권한을 연결한다.
+export const createStudy = async (payload = {}, currentUser) => {
+  const normalizedPayload = normalizeCreatePayload(payload);
+  const nickname = normalizeString(currentUser?.nickname);
+
+  validateRequiredFields({
+    nickname,
+    name: normalizedPayload.name,
+    description: normalizedPayload.description,
+    backgroundValue: normalizedPayload.backgroundValue,
+  });
+
+  const study = await studyRepository.create(
+    {
+      nickname,
+      name: normalizedPayload.name,
+      description: normalizedPayload.description,
+      backgroundType: normalizedPayload.backgroundType,
+      backgroundValue: normalizedPayload.backgroundValue,
+    },
+    currentUser.id,
+  );
+
+  return sanitizeStudy(study);
+};
+
+// 생성자 권한이 확인된 요청에서 수정 가능한 스터디 필드만 반영한다.
+export const updateStudy = async (studyId, payload = {}, userId) => {
+  await getStudyOrThrow(studyId);
 
   const updates = {};
   const name = normalizeString(payload.name ?? payload.studyName);
-  const nickname = normalizeString(payload.nickname);
   const description = normalizeString(payload.description ?? payload.intro ?? payload.introduction);
   const backgroundType = normalizeString(payload.backgroundType);
   const backgroundValue = normalizeString(payload.backgroundValue ?? payload.background);
-  const newPassword = normalizeString(payload.newPassword);
-  const newPasswordConfirmation = normalizeString(
-    payload.newPasswordConfirmation ?? payload.newPasswordConfirm,
-  );
-  const shouldChangePassword = Boolean(newPassword || newPasswordConfirmation);
 
   if (name) updates.name = name;
-  if (nickname) updates.nickname = nickname;
   if (description) updates.description = description;
   if (backgroundType) updates.backgroundType = backgroundType;
   if (backgroundValue) updates.backgroundValue = backgroundValue;
-  if (shouldChangePassword) {
-    await verifyPassword(study, payload.password);
-
-    if (!newPassword || !newPasswordConfirmation) {
-      throw createError(
-        400,
-        "PASSWORD_CONFIRMATION_REQUIRED",
-        "새 비밀번호와 새 비밀번호 확인을 모두 입력해주세요.",
-      );
-    }
-
-    if (newPassword !== newPasswordConfirmation) {
-      throw createError(
-        400,
-        "PASSWORD_CONFIRMATION_MISMATCH",
-        "새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.",
-      );
-    }
-
-    updates.passwordHash = await hashPassword(newPassword);
-  }
 
   if (Object.keys(updates).length === 0) {
     throw createError(400, "EMPTY_UPDATE", "수정할 값을 입력해주세요.");
   }
 
-  const updatedStudy = await studyRepository.update(studyId, updates);
+  const updatedStudy = await studyRepository.update(studyId, updates, userId);
   return sanitizeStudy(updatedStudy);
 };
 
-// 상세 페이지 진입 등에서 스터디 비밀번호가 맞는지 확인한다.
-export const verifyStudyPassword = async (studyId, payload = {}) => {
-  const study = await getStudyOrThrow(studyId);
-  await verifyPassword(study, payload.password);
-
-  return { verified: true };
-};
-
-// 비밀번호 검증 후 스터디를 soft delete 처리한다.
-export const deleteStudy = async (studyId, payload = {}) => {
-  const study = await getStudyOrThrow(studyId);
-  await verifyPassword(study, payload.password);
-
+// 라우트에서 생성자 권한을 확인한 스터디를 soft delete 처리한다.
+export const deleteStudy = async (studyId) => {
+  await getStudyOrThrow(studyId);
   return studyRepository.remove(studyId);
 };
 
@@ -258,7 +199,6 @@ export default {
   getStudy,
   createStudy,
   updateStudy,
-  verifyStudyPassword,
   deleteStudy,
   addEmoji,
 };

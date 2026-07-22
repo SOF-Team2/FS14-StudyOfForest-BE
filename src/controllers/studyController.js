@@ -14,22 +14,28 @@ const sendError = (res, error) => {
 };
 
 // 스터디 목록 조회 요청을 처리한다.
-export const getStudies = async (req, res) => {
+export const getStudies = async (req, res, next) => {
   try {
-    return res.status(200).json(await studyService.listStudies(req.query));
+    // 헤더에서 x-user-id 추출 (비로그인 요청일 수 있으므로 선택적)
+    const userId = req.headers["x-user-id"];
+
+    const result = await studyService.listStudies(req.query, userId);
+    return res.status(200).json(result);
   } catch (error) {
-    return sendError(res, error);
+    next(error);
   }
 };
 
-// 단일 스터디 상세 조회 요청을 처리한다.
-export const getStudy = async (req, res) => {
+// 스터디 상세 조회
+export const getStudy = async (req, res, next) => {
   try {
-    return res.status(200).json({
-      data: await studyService.getStudy(req.params.studyId),
-    });
+    const userId = req.headers["x-user-id"];
+    const { studyId } = req.params;
+
+    const result = await studyService.getStudy(studyId, userId);
+    return res.status(200).json(result);
   } catch (error) {
-    return sendError(res, error);
+    next(error);
   }
 };
 
@@ -37,41 +43,33 @@ export const getStudy = async (req, res) => {
 export const createStudy = async (req, res) => {
   try {
     return res.status(201).json({
-      data: await studyService.createStudy(req.body),
+      data: await studyService.createStudy(req.body, req.currentUser),
     });
   } catch (error) {
     return sendError(res, error);
   }
 };
 
-// 비밀번호 검증 후 스터디 수정 요청을 처리한다.
+// 생성자 권한 확인 후 스터디 수정 요청을 처리한다.
 export const updateStudy = async (req, res) => {
   try {
     return res.status(200).json({
-      data: await studyService.updateStudy(req.params.studyId, req.body),
+      data: await studyService.updateStudy(
+        req.params.studyId,
+        req.body,
+        req.currentUser.id,
+      ),
     });
   } catch (error) {
     return sendError(res, error);
   }
 };
 
-// 스터디 비밀번호 확인 요청을 처리한다.
-export const verifyStudyPassword = async (req, res) => {
-  try {
-    return res.status(200).json({
-      data: await studyService.verifyStudyPassword(req.params.studyId, req.body),
-    });
-  } catch (error) {
-    return sendError(res, error);
-  }
-};
-
-// 비밀번호 검증 후 스터디 삭제 요청을 처리한다.
+// 생성자 권한 확인 후 스터디 삭제 요청을 처리한다.
 export const deleteStudy = async (req, res) => {
   try {
-    return res.status(200).json({
-      data: await studyService.deleteStudy(req.params.studyId, req.body),
-    });
+    await studyService.deleteStudy(req.params.studyId);
+    return res.status(204).send();
   } catch (error) {
     return sendError(res, error);
   }

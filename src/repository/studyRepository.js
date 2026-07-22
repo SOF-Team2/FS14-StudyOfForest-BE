@@ -1,7 +1,7 @@
 import prisma from "../lib/prisma.js";
 
-// 스터디 조회 시 함께 내려줄 연결 데이터를 정의한다.
-const studyInclude = {
+// ✅ 1. userId를 인자로 받아 동적으로 include 객체를 생성하는 함수로 변경
+const getStudyInclude = (userId) => ({
   emojis: {
     orderBy: [{ count: "desc" }, { updatedAt: "desc" }],
     take: 3,
@@ -18,7 +18,24 @@ const studyInclude = {
       },
     },
   },
-};
+  // 로그인한 유저의 즐겨찾기 정보만 쏙 가져옴 (비로그인 시 false)
+  studyFavorites: userId
+    ? {
+        where: { userId },
+      }
+    : false,
+  studyMembers: userId
+    ? {
+        where: {
+          userId,
+          role: "HOST",
+        },
+        select: {
+          id: true,
+        },
+      }
+    : false,
+});
 
 const toIsoString = (date) => (date ? date.toISOString() : null);
 
@@ -36,6 +53,12 @@ const toStudyDto = (study) => {
     updatedAt: toIsoString(emoji.updatedAt),
   }));
 
+  // ✅ 2. 가져온 studyFavorites 배열을 바탕으로 isFavorite(boolean) 계산
+  const isFavorite =
+    Array.isArray(study.studyFavorites) && study.studyFavorites.length > 0;
+  const isOwner =
+    Array.isArray(study.studyMembers) && study.studyMembers.length > 0;
+
   return {
     id: study.id,
     nickname: study.nickname,
@@ -43,9 +66,11 @@ const toStudyDto = (study) => {
     description: study.description,
     backgroundType: study.backgroundType,
     backgroundValue: study.backgroundValue,
-    passwordHash: study.passwordHash,
     point: study.point,
     points: study.point,
+    isRecruiting: study.isRecruiting,
+    isFavorite, // ✅ DTO 응답 필드에 추가
+    isOwner,
     createdAt: toIsoString(study.createdAt),
     updatedAt: toIsoString(study.updatedAt),
     deletedAt: toIsoString(study.deletedAt),
@@ -93,8 +118,8 @@ const createOrderBy = (sort) => {
   return orderByMap[sort] ?? orderByMap.latest;
 };
 
-// 스터디 목록과 전체 개수를 같은 조건으로 조회한다.
-export const findAll = async ({ page, pageSize, keyword, sort }) => {
+// ✅ 3. findAll에서 userId를 받아 getStudyInclude(userId) 전달
+export const findAll = async ({ page, pageSize, keyword, sort, userId }) => {
   const where = {
     deletedAt: null,
     ...createSearchWhere(keyword),
@@ -108,7 +133,7 @@ export const findAll = async ({ page, pageSize, keyword, sort }) => {
       orderBy: createOrderBy(sort),
       skip,
       take,
-      include: studyInclude,
+      include: getStudyInclude(userId),
     }),
     prisma.study.count({ where }),
   ]);
@@ -119,21 +144,21 @@ export const findAll = async ({ page, pageSize, keyword, sort }) => {
   };
 };
 
-// 삭제되지 않은 단일 스터디를 ID로 조회한다.
-export const findById = async (studyId) => {
+// ✅ 4. findById에서 userId를 추가 인자로 전달받음
+export const findById = async (studyId, userId) => {
   const study = await prisma.study.findFirst({
     where: {
       id: studyId,
       deletedAt: null,
     },
-    include: studyInclude,
+    include: getStudyInclude(userId),
   });
 
   return toStudyDto(study);
 };
 
 // 새 스터디를 생성하고 연결 데이터를 포함해 반환한다.
-export const create = async (study) => {
+export const create = async (study, userId) => {
   const createdStudy = await prisma.study.create({
     data: {
       nickname: study.nickname,
@@ -141,23 +166,28 @@ export const create = async (study) => {
       description: study.description,
       backgroundType: study.backgroundType,
       backgroundValue: study.backgroundValue,
-      passwordHash: study.passwordHash,
       point: 0,
+      studyMembers: {
+        create: {
+          userId,
+          role: "HOST",
+        },
+      },
     },
-    include: studyInclude,
+    include: getStudyInclude(userId),
   });
 
   return toStudyDto(createdStudy);
 };
 
 // 전달받은 수정 데이터를 저장하고 연결 데이터를 포함해 반환한다.
-export const update = async (studyId, updates) => {
+export const update = async (studyId, updates, userId) => {
   const updatedStudy = await prisma.study.update({
     where: {
       id: studyId,
     },
     data: updates,
-    include: studyInclude,
+    include: getStudyInclude(userId),
   });
 
   return toStudyDto(updatedStudy);
@@ -202,20 +232,18 @@ export const upsertEmoji = async (studyId, emoji) => {
   });
 };
 
-//모집 버튼 구현 
-
+// 모집 버튼 구현 
 export const updateRecruiting = async (studyId, isRecruiting) => {
   const study = await prisma.study.update({
-    where : {
-      id : studyId,
+    where: {
+      id: studyId,
     },
-    data : {
-      isRecruiting : isRecruiting,
-    }
-  })
+    data: {
+      isRecruiting: isRecruiting,
+    },
+  });
   return study;
-}
-
+};
 
 export default {
   findAll,
