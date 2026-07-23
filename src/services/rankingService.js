@@ -3,6 +3,7 @@ import prisma from "../lib/prisma.js";
 const getWeekRange = () => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  
 
   // 오늘 요일 확인 (일: 0 ~ 토: 6)
   const day = today.getDay();

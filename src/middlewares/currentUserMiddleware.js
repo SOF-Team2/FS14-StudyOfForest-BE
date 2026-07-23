@@ -59,7 +59,37 @@ export const requireStudyHost = async (req, res, next) => {
   }
 };
 
+// 로그인 사용자가 해당 스터디의 멤버(HOST 또는 참여자)인지 확인함
+export const requireStudyMember = async (req, res, next) => {
+  try {
+    const { studyId } = req.params;
+    const isMember = await studyMemberService.isStudyMember(
+      req.currentUser.id,
+      studyId,
+    );
+
+    if (!isMember) {
+      return res.status(403).json({
+        success: false,
+        message: "스터디 참여자만 이용할 수 있습니다.",
+        errorCode: "STUDY_MEMBER_REQUIRED",
+      });
+    }
+
+    return next();
+  } catch (error) {
+    const statusCode = error.statusCode ?? error.status ?? 500;
+
+    return res.status(statusCode).json({
+      success: false,
+      message: error.message ?? "서버 오류가 발생했습니다.",
+      errorCode: error.code ?? "INTERNAL_SERVER_ERROR",
+    });
+  }
+};
+
 export default {
   verifyCurrentUser,
   requireStudyHost,
+  requireStudyMember,
 };

@@ -69,6 +69,6 @@ export async function findFocusSessions({ userId, studyId }) {
         select: { nickname: true },
       },
     },
-    orderBy: { startedAt: 'asc' },
+    orderBy: { startedAt: 'desc' },
   });
 }
