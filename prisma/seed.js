@@ -18,7 +18,7 @@ async function main() {
   await prisma.study.deleteMany();
   await prisma.user.deleteMany();
 
-  const passwordHash = await bcrypt.hash("1234", 10);
+  const passwordHash = await bcrypt.hash("as12345678", 10);
 
   // 2. 유저 생성
   const me = await prisma.user.create({

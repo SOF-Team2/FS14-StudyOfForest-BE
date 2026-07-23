@@ -16,7 +16,7 @@ router.get("/", studyController.getStudies);
 router.post("/", verifyCurrentUser, studyController.createStudy);
 
 // 스터디 하위 집중 기능 라우터를 연결한다.
-router.use("/:studyId/focus", verifyCurrentUser, requireStudyHost, focusRoute);
+router.use("/:studyId/focus", verifyCurrentUser, focusRoute);
 router.use("/:studyId/habit", verifyCurrentUser, requireStudyHost, habitRoutes);
 router.use("/:studyId/members", studyMemberRoutes);
 
