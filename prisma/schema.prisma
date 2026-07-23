@@ -6,57 +6,38 @@ datasource db {
   provider = "postgresql"
 }
 
-enum StudyMemberRole {
-  HOST
-  MEMBER
-}
-
-enum HabitStatus {
-  ACTIVE
-  INACTIVE
-}
-
 model User {
-  id           String   @id @default(uuid())
-  loginId      String   @unique @db.VarChar(20)
-  passwordHash String
-  nickname     String   @unique @db.VarChar(10)
-  point        Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  studyMembers  StudyMember[]
+  id            String         @id @default(uuid())
+  loginId       String         @unique @db.VarChar(20)
+  passwordHash  String
+  nickname      String         @unique @db.VarChar(10)
+  point         Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   focusSessions FocusSession[]
   habitRecords  HabitRecord[]
-
-  // ✅ 추가: 유저가 즐겨찾기한 스터디 목록
-  studyFavorites StudyFavorite[]
+  studyMembers  StudyMember[]
 
   @@index([point])
 }
 
 model Study {
-  id              String    @id @default(uuid())
-  // 생성 당시 HOST 사용자 닉네임 스냅샷
-  nickname        String    @db.VarChar(30)
-  name            String    @db.VarChar(50)
-  description     String    @db.VarChar(200)
-  backgroundType  String    @db.VarChar(20)
+  id              String         @id @default(uuid())
+  nickname        String         @db.VarChar(30)
+  name            String         @db.VarChar(50)
+  description     String         @db.VarChar(200)
+  backgroundType  String         @db.VarChar(20)
   backgroundValue String
-  point           Int       @default(0)
-  maxMembers      Int       @default(3) // HOST 포함 최대 참여 인원
-  isRecruiting    Boolean   @default(true) // true: 모집 중, false: 모집 마감
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  point           Int            @default(0)
+  maxMembers      Int            @default(3)
+  isRecruiting    Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   deletedAt       DateTime?
-
-  habits        Habit[]
-  emojis        StudyEmoji[]
-  studyMembers  StudyMember[]
-  focusSessions FocusSession[]
-
-  // ✅ 추가: 이 스터디를 즐겨찾기한 내역들
-  studyFavorites StudyFavorite[]
+  focusSessions   FocusSession[]
+  habits          Habit[]
+  emojis          StudyEmoji[]
+  studyMembers    StudyMember[]
 
   @@index([createdAt])
   @@index([point])
@@ -65,32 +46,14 @@ model Study {
   @@index([isRecruiting])
 }
 
-// ✅ 신규 모델 추가: 스터디 즐겨찾기
-model StudyFavorite {
-  id        String   @id @default(uuid())
-  userId    String
-  studyId   String
-  createdAt DateTime @default(now())
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  study Study @relation(fields: [studyId], references: [id], onDelete: Cascade)
-
-  // 한 유저가 같은 스터디를 여러 번 즐겨찾기 할 수 없도록 고유키 설정
-  @@unique([userId, studyId])
-  // 빠른 조회를 위한 인덱스 설정
-  @@index([userId])
-  @@index([studyId])
-}
-
 model StudyMember {
   id       String          @id @default(uuid())
   userId   String
   studyId  String
   role     StudyMemberRole @default(MEMBER)
   joinedAt DateTime        @default(now())
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  study Study @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  study    Study           @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, studyId])
   @@index([userId])
@@ -99,50 +62,43 @@ model StudyMember {
 }
 
 model StudyEmoji {
-  id      String @id @default(uuid())
-  studyId String
-  study   Study  @relation(fields: [studyId], references: [id], onDelete: Cascade)
-
-  emoji String @db.VarChar(20)
-  count Int    @default(0)
-
+  id        String   @id @default(uuid())
+  studyId   String
+  emoji     String   @db.VarChar(20)
+  count     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  study     Study    @relation(fields: [studyId], references: [id], onDelete: Cascade)
 
   @@unique([studyId, emoji])
   @@index([studyId])
 }
 
 model Habit {
-  id      String @id @default(uuid())
-  studyId String
-  study   Study  @relation(fields: [studyId], references: [id], onDelete: Cascade)
-
-  name        String
-  habitStatus HabitStatus @default(ACTIVE)
-  startDate   DateTime
-  endDate     DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id           String        @id @default(uuid())
+  studyId      String
+  name         String
+  habitStatus  HabitStatus   @default(ACTIVE)
+  startDate    DateTime
+  endDate      DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  study        Study         @relation(fields: [studyId], references: [id], onDelete: Cascade)
   habitRecords HabitRecord[]
 
   @@index([studyId])
 }
 
 model HabitRecord {
-  id      String @id @default(uuid())
-  habitId String
-  habit   Habit  @relation(fields: [habitId], references: [id], onDelete: Cascade)
-  userId  String
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id         String   @id @default(uuid())
+  habitId    String
+  userId     String
   recordDate DateTime
   isChecked  Boolean  @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  habit      Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([habitId, userId, recordDate])
   @@index([userId])
@@ -150,19 +106,27 @@ model HabitRecord {
 }
 
 model FocusSession {
-  id      String @id @default(uuid())
-  userId  String
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  studyId String
-  study   Study  @relation(fields: [studyId], references: [id], onDelete: Cascade)
-
+  id              String   @id @default(uuid())
+  userId          String
+  studyId         String
   durationSeconds Int
   startedAt       DateTime
   point           Int      @default(0)
-
-  createdAt DateTime @default(now())
+  createdAt       DateTime @default(now())
+  study           Study    @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
   @@index([userId])
   @@index([studyId])
+}
+
+enum StudyMemberRole {
+  HOST
+  MEMBER
+}
+
+enum HabitStatus {
+  ACTIVE
+  INACTIVE
 }
