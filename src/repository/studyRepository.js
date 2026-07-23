@@ -21,19 +21,19 @@ const getStudyInclude = (userId) => ({
   // 로그인한 유저의 즐겨찾기 정보만 쏙 가져옴 (비로그인 시 false)
   studyFavorites: userId
     ? {
-        where: { userId },
-      }
+      where: { userId },
+    }
     : false,
   studyMembers: userId
     ? {
-        where: {
-          userId,
-          role: "HOST",
-        },
-        select: {
-          id: true,
-        },
-      }
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    }
     : false,
 });
 
@@ -56,8 +56,10 @@ const toStudyDto = (study) => {
   // ✅ 2. 가져온 studyFavorites 배열을 바탕으로 isFavorite(boolean) 계산
   const isFavorite =
     Array.isArray(study.studyFavorites) && study.studyFavorites.length > 0;
-  const isOwner =
+  const isMember =
     Array.isArray(study.studyMembers) && study.studyMembers.length > 0;
+  const isOwner =
+    isMember && study.studyMembers.some((member) => member.role === "HOST");
 
   return {
     id: study.id,
@@ -71,6 +73,7 @@ const toStudyDto = (study) => {
     isRecruiting: study.isRecruiting,
     isFavorite, // ✅ DTO 응답 필드에 추가
     isOwner,
+    isMember,
     createdAt: toIsoString(study.createdAt),
     updatedAt: toIsoString(study.updatedAt),
     deletedAt: toIsoString(study.deletedAt),

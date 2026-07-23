@@ -26,6 +26,14 @@ const getWeekRange = (date = new Date()) => {
   return { start, end };
 };
 
+const getLastWeekRange = (date = new Date()) => {
+  const { start: thisWeekStart } = getWeekRange(date);
+  const start = new Date(thisWeekStart);
+  start.setDate(start.getDate() - 7);
+  const end = new Date(thisWeekStart);
+  return { start, end };
+};
+
 const dateKey = (d) => {
   const dt = new Date(d);
   return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
@@ -33,6 +41,14 @@ const dateKey = (d) => {
 
 const sumSeconds = (arr) => arr.reduce((sum, s) => sum + s.durationSeconds, 0);
 const toMinutes = (sec) => Math.floor(sec / 60);
+
+const formatHourMinute = (totalMinutes) => {
+  const sign = totalMinutes < 0 ? "-" : "";
+  const abs = Math.abs(totalMinutes);
+  const hour = Math.floor(abs / 60);
+  const minute = abs % 60;
+  return `${sign}${hour}시간 ${String(minute).padStart(2, "0")}분`;
+};
 
 // 오늘의 집중 카드 (실제 DB)
 const getFocusCard = async (userId) => {
@@ -71,7 +87,9 @@ const getFocusCard = async (userId) => {
 
 // 완료한 습관 카드 (실제 DB)
 const getHabitCard = async (userId) => {
-  const today = startOfToday();
+  const today = startOfDay();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
   const memberships = await prisma.studyMember.findMany({
     where: { userId },
@@ -83,7 +101,7 @@ const getHabitCard = async (userId) => {
     where: {
       studyId: { in: studyIds },
       habitStatus: "ACTIVE",
-      startDate: { lte: today },
+      startDate: { lt: tomorrow },
       OR: [{ endDate: null }, { endDate: { gte: today } }],
     },
     select: { id: true },
@@ -197,40 +215,79 @@ const getStreakCard = async (userId) => {
   };
 };
 
-// 요일별 주간 집중시간 (실제 DB)
-const getWeeklyFocus = async (userId) => {
-  const { start } = getWeekRange();
-
-  const sessions = await prisma.focusSession.findMany({
-    where: { userId, createdAt: { gte: start } },
-    select: { durationSeconds: true, createdAt: true },
-  });
-
-  const dayLabels = ["일", "월", "화", "수", "목", "금", "토"];
+const buildMinutesByDayOfWeek = (sessions) => {
   const minutesByDay = [0, 0, 0, 0, 0, 0, 0];
-
   sessions.forEach((s) => {
     const dayIndex = new Date(s.createdAt).getDay();
     minutesByDay[dayIndex] += toMinutes(s.durationSeconds);
   });
+  return minutesByDay;
+};
 
+// 요일별 주간 집중시간 (실제 DB)
+const getWeeklyFocusCard = async (userId) => {
+  const { start: thisWeekStart, end: thisWeekEnd } = getWeekRange();
+  const { start: lastWeekStart, end: lastWeekEnd } = getLastWeekRange();
+
+  const [thisWeekSessions, lastWeekSessions] = await Promise.all([
+    prisma.focusSession.findMany({
+      where: {
+        userId,
+        createdAt: { gte: thisWeekStart, lt: thisWeekEnd },
+      },
+      select: { durationSeconds: true, createdAt: true },
+    }),
+    prisma.focusSession.findMany({
+      where: {
+        userId,
+        createdAt: { gte: lastWeekStart, lt: lastWeekEnd },
+      },
+      select: { durationSeconds: true },
+    }),
+  ]);
+
+  const dayLabels = ["일", "월", "화", "수", "목", "금", "토"];
+  const minutesByDay = buildMinutesByDayOfWeek(thisWeekSessions);
   const order = [1, 2, 3, 4, 5, 6, 0];
-  return order.map((dayIndex) => ({
+
+  const days = order.map((dayIndex) => ({
     day: dayLabels[dayIndex],
     minutes: minutesByDay[dayIndex],
   }));
+
+  const totalMinutes = minutesByDay.reduce((sum, m) => sum + m, 0);
+  const lastWeekTotalMinutes = toMinutes(sumSeconds(lastWeekSessions));
+  const diffMinutes = totalMinutes - lastWeekTotalMinutes;
+
+  return {
+    id: "weeklyFocus",
+    label: "이번 주 집중",
+    description: "요일별 집중 시간을 확인해 보세요",
+    icon: "📊",
+    type: "weeklyChart",
+    hour: String(Math.floor(totalMinutes / 60)).padStart(2, "0"),
+    minute: String(totalMinutes % 60).padStart(2, "0"),
+    days,
+    footerLabel: "지난주보다",
+    footerValue: `${diffMinutes >= 0 ? "+" : ""}${formatHourMinute(diffMinutes)}`,
+    footerClassName:
+      diffMinutes >= 0 ? "dashboard_increase" : "dashboard_decrease",
+  };
 };
 
 export const getDashboard = async (userId) => {
-  const [focusCard, habitCard, streakCard, weeklyFocus] = await Promise.all([
-    getFocusCard(userId),
-    getHabitCard(userId),
-    getStreakCard(userId),
-    getWeeklyFocus(userId),
-  ]);
+  const [focusCard, habitCard, streakCard, weeklyFocusCard] = await Promise.all(
+    [
+      getFocusCard(userId),
+      getHabitCard(userId),
+      getStreakCard(userId),
+      getWeeklyFocusCard(userId),
+    ],
+  );
 
   return {
     todayStatus: [focusCard, habitCard, streakCard],
-    weeklyFocus,
+    weeklyFocus: weeklyFocusCard.days,
+    weeklyFocusCard,
   };
 };
