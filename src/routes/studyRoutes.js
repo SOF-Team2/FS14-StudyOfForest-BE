@@ -18,7 +18,7 @@ router.post("/", verifyCurrentUser, studyController.createStudy);
 
 // 스터디 하위 집중 기능 라우터를 연결한다.
 router.use("/:studyId/focus", verifyCurrentUser, requireStudyMember, focusRoute);
-router.use("/:studyId/habit", verifyCurrentUser, requireStudyHost, habitRoutes);
+router.use("/:studyId/habit", verifyCurrentUser, requireStudyMember, habitRoutes);
 router.use("/:studyId/members", studyMemberRoutes);
 
 // 특정 스터디의 상세 조회, 수정, 삭제 요청을 처리한다.
