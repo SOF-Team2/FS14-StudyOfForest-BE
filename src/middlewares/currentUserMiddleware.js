@@ -9,7 +9,7 @@ export const verifyCurrentUser = async (req, res, next) => {
     if (!userId) {
       return res.status(400).json({
         success: false,
-        message: "x-user-id 헤더가 필요합니다.",
+        message: "로그인이 필요합니다..",
         errorCode: "USER_ID_REQUIRED",
       });
     }
