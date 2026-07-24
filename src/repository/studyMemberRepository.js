@@ -4,6 +4,14 @@ import prisma from "../lib/prisma.js"
 export const findByStudyId = async(studyId) => {
     const members = await prisma.studyMember.findMany({
         where: {studyId : studyId},
+        include: {
+            user: {
+        select: {
+          nickname: true,
+          loginId: true,
+        },
+      },
+        }
     })
     return members
 }

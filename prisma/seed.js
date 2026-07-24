@@ -9,7 +9,7 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   // 1. 기존 데이터 초기화 (외래키 참조 관계 순서 고려)
-  await prisma.studyFavorite.deleteMany(); // ✅ 추가: 즐겨찾기 초기화
+  //await prisma.studyFavorite.deleteMany(); // ✅ 추가: 즐겨찾기 초기화
   await prisma.focusSession.deleteMany();
   await prisma.habitRecord.deleteMany();
   await prisma.habit.deleteMany();
@@ -117,14 +117,14 @@ async function main() {
   });
 
   // 5. ✅ 추가: 스터디 즐겨찾기 데이터 생성
-  await prisma.studyFavorite.createMany({
-    data: [
-      { userId: me.id, studyId: study1.id }, // '이서윤'이 'React 스터디' 즐겨찾기
-      { userId: me.id, studyId: study3.id }, // '이서윤'이 'CS 면접 준비' 즐겨찾기
-      { userId: minsu.id, studyId: study2.id }, // '민수'가 '프론트엔드 실전반' 즐겨찾기
-      { userId: seoyeon.id, studyId: study1.id }, // '서연'이 'React 스터디' 즐겨찾기
-    ],
-  });
+  // await prisma.studyFavorite.createMany({
+  //   data: [
+  //     { userId: me.id, studyId: study1.id }, // '이서윤'이 'React 스터디' 즐겨찾기
+  //     { userId: me.id, studyId: study3.id }, // '이서윤'이 'CS 면접 준비' 즐겨찾기
+  //     { userId: minsu.id, studyId: study2.id }, // '민수'가 '프론트엔드 실전반' 즐겨찾기
+  //     { userId: seoyeon.id, studyId: study1.id }, // '서연'이 'React 스터디' 즐겨찾기
+  //   ],
+  // });
 
   // 6. 몰입 세션(FocusSession) 생성
   await prisma.focusSession.createMany({
