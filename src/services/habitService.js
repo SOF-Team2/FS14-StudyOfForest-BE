@@ -6,10 +6,16 @@ const throwError = (status, message) => {
   throw error;
 };
 
-export const getHabits = async (studyId) => {
+// 스터디 습관과 현재 유저의 오늘 기록을 조회
+export const getHabits = async (studyId, userId) => {
   if (!studyId) {
     throwError(400, "studyId가 필요합니다.");
   }
+
+  if (!userId) {
+    throwError(400, "userId가 필요합니다.");
+  }
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -18,32 +24,33 @@ export const getHabits = async (studyId) => {
 
   return prisma.study.findUnique({
     where: {
-      id: studyId
-   },
-   include: {
-    habits: {
-      where: {
-      studyId,
-      habitStatus: "ACTIVE",
+      id: studyId,
     },
     include: {
-      habitRecords: {
+      habits: {
         where: {
-          recordDate: {
-            gte: today,
-            lt: tomorrow,
+          habitStatus: "ACTIVE",
+        },
+        include: {
+          habitRecords: {
+            where: {
+              userId,
+              recordDate: {
+                gte: today,
+                lt: tomorrow,
+              },
+            },
           },
+        },
+        orderBy: {
+          createdAt: "asc",
         },
       },
     },
-    orderBy: {
-      createdAt: "asc",
-    }
-    }
-   }
-  })
+  });
 };
 
+// 스터디 습관을 생성
 export const createHabit = async (studyId, data) => {
   if (!studyId) {
     throwError(400, "studyId가 필요합니다.");
@@ -62,6 +69,7 @@ export const createHabit = async (studyId, data) => {
   });
 };
 
+// 스터디 습관을 수정
 export const updateHabit = async (studyId, habits) => {
   const operations = habits.map((habit) => {
     if (habit.id) {
@@ -72,7 +80,7 @@ export const updateHabit = async (studyId, habits) => {
           habitStatus: "ACTIVE",
         },
         data: {
-          name: habit.name
+          name: habit.name,
         },
       });
     }
@@ -81,7 +89,7 @@ export const updateHabit = async (studyId, habits) => {
       data: {
         studyId,
         name: habit.name,
-        startDate: new Date()
+        startDate: new Date(),
       },
     });
   });
@@ -91,13 +99,15 @@ export const updateHabit = async (studyId, habits) => {
   return prisma.habit.findMany({
     where: {
       studyId,
+      habitStatus: "ACTIVE",
     },
     orderBy: {
-      createdAt: 'asc',
+      createdAt: "asc",
     },
   });
 };
 
+// 스터디 습관을 삭제
 export const deleteHabit = async (studyId, habitId) => {
   if (!studyId || !habitId) {
     throwError(400, "habitId가 필요합니다.");
@@ -125,6 +135,7 @@ export const deleteHabit = async (studyId, habitId) => {
   });
 };
 
+// 현재 유저의 오늘 습관 기록을 변경
 export const toggleHabitRecord = async (studyId, habitId, userId) => {
   if (!studyId || !habitId || !userId) {
     throwError(400, "habitId가 필요합니다.");
@@ -179,6 +190,7 @@ export const toggleHabitRecord = async (studyId, habitId, userId) => {
   });
 };
 
+// 기준일이 포함된 주의 시작일과 종료일 계산
 function getWeekRange(date = new Date()) {
   const start = new Date(date);
   start.setHours(0, 0, 0, 0);
@@ -194,7 +206,16 @@ function getWeekRange(date = new Date()) {
   return { start, end };
 }
 
-export const getWeeklyHabitRecords = async (studyId, date) => {
+// 현재 유저의 주간 습관 기록을 조회
+export const getWeeklyHabitRecords = async (studyId, userId, date) => {
+  if (!studyId) {
+    throwError(400, "studyId가 필요합니다.");
+  }
+
+  if (!userId) {
+    throwError(400, "userId가 필요합니다.");
+  }
+  
   const { start, end } = getWeekRange(date);
 
   return prisma.habit.findMany({
@@ -205,9 +226,10 @@ export const getWeeklyHabitRecords = async (studyId, date) => {
     include: {
       habitRecords: {
         where: {
+          userId,
           recordDate: {
-                gte: start,
-                lt: end,
+            gte: start,
+            lt: end,
           },
         },
       },
@@ -216,4 +238,4 @@ export const getWeeklyHabitRecords = async (studyId, date) => {
       createdAt: "asc",
     },
   });
-}
+};
