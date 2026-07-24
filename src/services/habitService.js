@@ -26,12 +26,18 @@ export const getHabits = async (studyId, userId) => {
     where: {
       id: studyId,
     },
-    include: {
+    select: {
+      nickname: true,
+      name: true,
+      backgroundType: true,
+      backgroundValue: true,
       habits: {
         where: {
           habitStatus: "ACTIVE",
         },
-        include: {
+        select: {
+          id: true,
+          name: true,
           habitRecords: {
             where: {
               userId,
@@ -39,6 +45,9 @@ export const getHabits = async (studyId, userId) => {
                 gte: today,
                 lt: tomorrow,
               },
+            },
+            select: {
+              isChecked: true,
             },
           },
         },
@@ -66,6 +75,10 @@ export const createHabit = async (studyId, data) => {
       name: data.name,
       startDate: new Date(),
     },
+    select: {
+      id: true,
+      name: true,
+    },
   });
 };
 
@@ -91,6 +104,10 @@ export const updateHabit = async (studyId, habits) => {
         name: habit.name,
         startDate: new Date(),
       },
+      select: {
+        id: true,
+        name: true,
+      },
     });
   });
 
@@ -103,6 +120,10 @@ export const updateHabit = async (studyId, habits) => {
     },
     orderBy: {
       createdAt: "asc",
+    },
+    select: {
+      id: true,
+      name: true,
     },
   });
 };
@@ -118,6 +139,10 @@ export const deleteHabit = async (studyId, habitId) => {
       id: habitId,
       studyId,
     },
+    select: {
+      id: true,
+      habitStatus: true,
+    },
   });
 
   if (!habit || habit.habitStatus === "INACTIVE") {
@@ -132,6 +157,10 @@ export const deleteHabit = async (studyId, habitId) => {
       habitStatus: "INACTIVE",
       endDate: new Date(),
     },
+    select: {
+      id: true,
+      habitStatus: true,
+    },
   });
 };
 
@@ -145,6 +174,10 @@ export const toggleHabitRecord = async (studyId, habitId, userId) => {
     where: {
       id: habitId,
       studyId,
+    },
+    select: {
+      id: true,
+      habitStatus: true,
     },
   });
 
@@ -167,6 +200,10 @@ export const toggleHabitRecord = async (studyId, habitId, userId) => {
         lt: tomorrow,
       },
     },
+    select: {
+      id: true,
+      isChecked: true,
+    },
   });
 
   if (!habitRecord) {
@@ -175,6 +212,9 @@ export const toggleHabitRecord = async (studyId, habitId, userId) => {
         habitId,
         userId,
         recordDate: today,
+        isChecked: true,
+      },
+      select: {
         isChecked: true,
       },
     });
@@ -186,6 +226,9 @@ export const toggleHabitRecord = async (studyId, habitId, userId) => {
     },
     data: {
       isChecked: !habitRecord.isChecked,
+    },
+    select: {
+      isChecked: true,
     },
   });
 };
@@ -223,7 +266,9 @@ export const getWeeklyHabitRecords = async (studyId, userId, date) => {
       studyId,
       habitStatus: "ACTIVE",
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
       habitRecords: {
         where: {
           userId,
@@ -231,6 +276,11 @@ export const getWeeklyHabitRecords = async (studyId, userId, date) => {
             gte: start,
             lt: end,
           },
+        },
+        select: {
+          recordDate: true,
+          isChecked: true,
+          updatedAt: true,
         },
       },
     },
