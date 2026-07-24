@@ -9,6 +9,7 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   // 1. 기존 데이터 초기화 (외래키 참조 관계 순서 고려)
+  await prisma.userAchievement.deleteMany();
   await prisma.studyFavorite.deleteMany(); // ✅ 추가: 즐겨찾기 초기화
   await prisma.focusSession.deleteMany();
   await prisma.habitRecord.deleteMany();
@@ -244,6 +245,31 @@ async function main() {
     id: me.id,
     loginId: me.loginId,
     nickname: me.nickname,
+  });
+
+  await prisma.userAchievement.createMany({
+    data: [
+      {
+        userId: me.id,
+        achievementType: "FOCUS_SEED",
+        achievedAt: new Date("2026-07-08T09:00:00.000Z"),
+      },
+      {
+        userId: me.id,
+        achievementType: "IMMERSION_SPROUT",
+        achievedAt: new Date("2026-07-15T14:20:00.000Z"),
+      },
+      {
+        userId: me.id,
+        achievementType: "STEADY_SAPLING",
+        achievedAt: new Date("2026-07-21T20:05:00.000Z"),
+      },
+      {
+        userId: minsu.id,
+        achievementType: "FOCUS_SEED",
+        achievedAt: new Date("2026-07-10T11:00:00.000Z"),
+      },
+    ],
   });
 }
 
