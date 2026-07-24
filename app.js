@@ -9,6 +9,7 @@ import dashboardRoutes from "./src/routes/dashboardRoutes.js";
 import favoriteRoutes from "./src/routes/favoriteRoutes.js";
 import userRoute from "./src/routes/userRoute.js";
 import goalRoutes from "./src/routes/goalRoutes.js";
+import achievementRoutes from './src/routes/achievementRoute.js'
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/api/users", userStudyRoutes);
 app.use("/api/users", dashboardRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/users", goalRoutes);
+app.use("/achievements", achievementRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Hello World" });

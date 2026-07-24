@@ -1,4 +1,5 @@
 import * as focusRepository from '../repository/focusRepository.js';
+import { checkAchievements } from './achievementService.js';
 
 // 스터디 데이터 조회
 export const getFocusStudyData = async (studyId) => {
@@ -55,6 +56,8 @@ export async function createFocusSession({ userId, studyId, startedAt, durationS
     });
     const updatedUser = await focusRepository.addUserPoint(userId, point);
     const updatedStudy = await focusRepository.addStudyPoint(studyId, point);
+    // 유저 포인트 중가 후 새로 달성한 업적 확인 및 저장
+    const newAchievements = await checkAchievements(userId);
 
     return {
       id: session.id,
@@ -63,6 +66,7 @@ export async function createFocusSession({ userId, studyId, startedAt, durationS
       point: session.point,
       userPoint: updatedUser.point,
       studyPoint: updatedStudy.point,
+      newAchievements,
     };
   } catch (error) {
     throw error;
