@@ -79,6 +79,7 @@ const toStudyDto = (study) => {
     deletedAt: toIsoString(study.deletedAt),
     emojis,
     topEmojis: emojis,
+    maxMembers: study.maxMembers,
     habitRecords: (study.habits ?? []).map((habit) => ({
       habitId: habit.id,
       habitName: habit.name,

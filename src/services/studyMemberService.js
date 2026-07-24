@@ -1,6 +1,5 @@
 import * as studyMemberRepository from "../repository/studyMemberRepository.js"
-import studyRepository from "../repository/studyRepository.js";
-
+import * as studyRepository from "../repository/studyRepository.js";
 
 export const getMembers = async (studyId) => {
   const members = await studyMemberRepository.findByStudyId(studyId);
@@ -11,6 +10,11 @@ export const join = async (userId, studyId) => {
   const count = await studyMemberRepository.countByStudyId(studyId);
   const study = await studyRepository.findById(studyId)
   const maxCount = study.maxMembers;
+
+  if (!study.isRecruiting) {
+    throw new Error("모집이 마감된 스터디입니다.")
+  }
+
   if (count >= maxCount) {
     throw new Error("정원이 가득 찼습니다.")
   }
